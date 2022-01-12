@@ -5,13 +5,14 @@
         Method
       </div>
       <q-select
-          dark
-          v-model="method"
-          :options="getCalcOptions"
-          label="Calculation"
-          behavior="dialog"
-          :options-dark="false"
-          @update:model-value="setMethod"
+        dark
+        v-model="method"
+        :options="getCalcOptions"
+        :display-value="getMethodDisplay"
+        label="Calculation"
+        behavior="dialog"
+        :options-dark="false"
+        @update:model-value="setMethod"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
@@ -27,12 +28,13 @@
         </template>
       </q-select>
       <q-select
-          dark
-          v-model="jurisprudence"
-          :options="jurisprudenceOptions"
-          :options-dark="false"
-          label="Jurisprudence"
-          @update:model-value="setJurisprudence"
+        dark
+        v-model="jurisprudence"
+        :options="Jurisprudence"
+        :display-value="jurisprudenceSetting"
+        :options-dark="false"
+        label="Jurisprudence"
+        @update:model-value="setJurisprudence"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
@@ -51,50 +53,34 @@
 </template>
 
 <script>
-import {api} from 'boot/axios'
-import {
-  METHOD_SETTINGS_URL,
-  CALCULATIONS_URL,
-  CALCULATION_SETTINGS_URL,
-  JURISPRUDENCE_SETTINGS_URL
-} from "../utils/constants";
+
+import {Methods} from "../utils/methods"
+import {Jurisprudence} from "src/utils/jurisprudence";
 
 
 export default {
   name: 'Calculation',
   data() {
     return {
-      method: '',
-      methodOptions: {},
+      Jurisprudence,
       jurisprudence: '',
-      jurisprudenceOptions: [
-        {'label': 'Standard', 'details': "Shafa'i, Malaki, Hambali"},
-        {'label': 'Hanafi', 'details': "Hanafi"}
-      ]
+      method: '',
     }
   },
-  mounted() {
-    this.getCalculations()
+  props: {
+    'methodSetting': {
+      type: String
+    },
+    'jurisprudenceSetting': {
+      type: String
+    },
   },
   methods: {
-    getCalculations() {
-      api.get(CALCULATIONS_URL).then(resp => {
-        this.methodOptions = resp.data
-        this.getCalculation()
-      })
-    },
-    getCalculation() {
-      api.get(CALCULATION_SETTINGS_URL).then(resp => {
-        if (resp.data.method)
-          this.method = this.createObject(resp.data.method)
-        this.jurisprudence = resp.data.jurisprudence
-      })
-    },
     setMethod(method) {
-      api.put(METHOD_SETTINGS_URL + method.value)
+      this.$emit('set-method', method.value)
     },
     setJurisprudence(jurisprudence) {
-      api.put(JURISPRUDENCE_SETTINGS_URL + jurisprudence.label)
+      this.$emit('set-jurisprudence', jurisprudence.label)
     },
     createObject(a) {
       const r = {
@@ -128,17 +114,15 @@ export default {
       }
       return r
     }
-
-
   },
   computed: {
     getCalcOptions() {
-      if (this.methodOptions) {
-        return Object.values(this.methodOptions).map(a => {
-          return this.createObject(a)
-        })
-      }
-      return []
+      return Object.values(Methods).map(a => {
+        return this.createObject(a)
+      })
+    },
+    getMethodDisplay() {
+      return this.createObject(Methods[this.methodSetting]).label
     }
   }
 }

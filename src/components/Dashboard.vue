@@ -8,10 +8,12 @@
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunset-up"/>
               </div>
-              <div class="col-5 text-h6">
+              <div class="text-h6"
+                   :class="nameCol"
+              >
                 Fajr
               </div>
-              <div class="col-3">
+              <div :class="timeCol">
                 {{ prayerTimes.fajr }}
               </div>
             </div>
@@ -19,10 +21,12 @@
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunset"/>
               </div>
-              <div class="col-5 text-h6">
+              <div class="text-h6"
+                   :class="nameCol"
+              >
                 Sunrise
               </div>
-              <div class="col-3">
+              <div :class="timeCol">
                 {{ prayerTimes.sunrise }}
               </div>
             </div>
@@ -30,10 +34,12 @@
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunny"/>
               </div>
-              <div class="col-5 text-h6">
+              <div class="text-h6"
+                   :class="nameCol"
+              >
                 Dhuhur
               </div>
-              <div class="col-3">
+              <div :class="timeCol">
                 {{ prayerTimes.dhuhr }}
               </div>
             </div>
@@ -41,10 +47,12 @@
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-partly-cloudy"/>
               </div>
-              <div class="col-5">
+              <div class="text-h6"
+                   :class="nameCol"
+              >
                 Asr
               </div>
-              <div class="col-3">
+              <div :class="timeCol">
                 {{ prayerTimes.asr }}
               </div>
             </div>
@@ -52,10 +60,12 @@
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunset-down"/>
               </div>
-              <div class="col-5 text-h6">
+              <div class="text-h6"
+                   :class="nameCol"
+              >
                 Maghrib
               </div>
-              <div class="col-3">
+              <div :class="timeCol">
                 {{ prayerTimes.maghrib }}
               </div>
             </div>
@@ -63,10 +73,12 @@
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-night"/>
               </div>
-              <div class="col-5 text-h6">
+              <div class="text-h6"
+                   :class="nameCol"
+              >
                 Isha
               </div>
-              <div class="col-3">
+              <div :class="timeCol">
                 {{ prayerTimes.isha }}
               </div>
             </div>
@@ -84,10 +96,10 @@
             <div class="row q-gutter-md justify-around">
               <div class="col-1">
                 <q-icon size="sm"
-                        :name="selected ? selected.cast_type === 'Group' ? 'speaker_group' :  'speaker': 'volume_off'"/>
+                        :name="speaker ? speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker': 'volume_off'"/>
               </div>
-              <div v-if="selected" class="col-9">
-                {{ `${selected.name} - ${selected.model}` }}
+              <div v-if="speaker" class="col-9">
+                {{ `${speaker.name} - ${speaker.model}` }}
               </div>
               <div v-else>
                 NONE SELECTED
@@ -102,7 +114,7 @@
             label-color="orange"
             dark
             hint="add the trailing slash, and click out of this text box to save"
-            placeholder="http://localhost:5002/"
+            :placeholder="baseURL"
             @update:model-value="updateBaseURL"
           />
         </q-card-section>
@@ -123,19 +135,23 @@ export default {
   data() {
     return {
       'prayerTimes': null,
-      'athanActive': true,
-      'fajrActive': true,
-      'selected': '',
       'newBaseURL': ''
+    }
+  },
+  props: {
+    'speaker': {
+      type: Object
+    },
+    'baseURL': {
+      type: String
     }
   },
   mounted() {
     this.getPrayerTimes()
-    this.getSpeaker()
   },
   methods: {
     updateBaseURL() {
-      api.defaults.baseURL = this.newBaseURL
+      this.$emit('base-url', this.newBaseURL)
     },
     getPrayerTimes() {
       api.get(PRAYER_TIMES_URL).then(resp => {
@@ -144,12 +160,13 @@ export default {
         console.log(e)
       })
     },
-    getSpeaker() {
-      api.get(SPEAKER_SETTINGS_URL).then(resp => {
-        this.selected = resp.data
-      }).catch(e => {
-        console.log(e)
-      })
+  },
+  computed: {
+    timeCol() {
+      return 'col-4'
+    },
+    nameCol() {
+      return 'col-3'
     },
   }
 }

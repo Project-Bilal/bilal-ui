@@ -12,10 +12,10 @@
           <div class="col-1">
             <q-icon size="sm"
                     color="white"
-                    :name="selected ? selected.cast_type === 'Group' ? 'speaker_group' :  'speaker' : 'volume_off'"/>
+                    :name="speaker ? (speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker') : 'volume_off'"/>
           </div>
-          <div v-if="selected.name" class="col-9 text-uppercase">
-            {{ `${selected.name} - ${selected.model}` }}
+          <div v-if="speaker.name" class="col-9 text-uppercase">
+            {{ `${speaker.name} - ${speaker.model}` }}
           </div>
           <div v-else class="col-9 text-uppercase">
             NONE SELECTED
@@ -55,7 +55,7 @@
           v-for="s in speakers"
           :key="s.name"
           active
-          :active-class="s.name === selected.name ? 'text-orange' :'text-white'"
+          :active-class="s.name === speaker.name ? 'text-orange' :'text-white'"
         >
           <q-item-section avatar>
             <q-icon
@@ -68,7 +68,6 @@
             <q-btn flat dense align="left" @click="setSpeaker(s)">
               {{ s.name }}
             </q-btn>
-
           </q-item-section>
           <q-item-section side>
             <q-btn dense flat size="sm" class="text-amber" @click="testSound(s)">Test</q-btn>
@@ -82,49 +81,25 @@
 
 <script>
 import {api} from 'boot/axios'
-import {SPEAKER_SETTINGS_URL, TEST_SOUND_URL} from "../utils/constants";
+import {TEST_SOUND_URL} from "../utils/constants";
 
 export default {
   name: 'Speakers',
-
-  data() {
-    return {
-      selected: '',
-    }
-  },
   props: {
     'speakers': {
       type: Array,
+    },
+    'speaker': {
+      type: Object
     }
   },
-  mounted() {
-    this.getSpeaker()
-  },
   methods: {
-    getSpeaker() {
-      api.get(SPEAKER_SETTINGS_URL).then(resp => {
-        this.selected = resp.data
-      }).catch(e => {
-        console.log(e)
-      })
-    },
     setSpeaker(speaker) {
-      this.selected = speaker
-      api.put(SPEAKER_SETTINGS_URL, speaker).catch(e => {
-        console.log(e)
-      })
+      this.$emit('set-speaker', speaker)
     },
     testSound(speaker) {
-      console.log(speaker)
-      const config = {
-        audio_id: '1jishJEjKVBqMqLhR4uPv8X8hjOKIIvgS',
-        speaker: speaker
-      }
-      api.post(TEST_SOUND_URL, config).then(resp => {
-        console.log(resp)
-      }).catch(e => {
-        console.log(e)
-      })
+      const chirp = '1jishJEjKVBqMqLhR4uPv8X8hjOKIIvgS'
+      this.$emit('test-speaker', chirp, speaker)
     }
   }
 }

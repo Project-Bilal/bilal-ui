@@ -6,7 +6,7 @@
       </div>
       <vue-google-autocomplete
         id="map"
-        :placeholder="address"
+        :placeholder="address === '' ? 'Enter your address' : address"
         v-on:placechanged="getGoogleLocation"
       />
     </q-card-section>
@@ -31,9 +31,19 @@
         </q-popup-proxy>
       </q-icon>
       <div v-if="manualEntry">
-        <q-input dark clearable label="Latitude" v-model="latitude"/>
-        <q-input dark clearable label="Longitude" v-model="longitude"/>
-        <q-btn padding="sm" color="teal" @click="setManualLocation">submit</q-btn>
+        <q-input
+          v-model="lat"
+          :placeholder="latitude === 0 ? 'Latitude' : latitude"
+          clearable
+          dark
+        />
+        <q-input
+          v-model="long"
+          :placeholder="longitude === 0 ? 'Longitude': longitude "
+          clearable
+          dark
+        />
+        <q-btn :disabled="!lat || !long" padding="sm" color="teal" @click="setManualLocation">submit</q-btn>
       </div>
     </q-card-section>
   </q-card>
@@ -41,54 +51,46 @@
 
 <script>
 
-import {api} from 'boot/axios'
 import VueGoogleAutocomplete from "components/./VueGoogleAutoComplete"
-import {LOCATION_SETTINGS_URL} from "../utils/constants";
 
 export default {
   name: 'Location',
   data() {
     return {
-      address: 'Enter your address',
-      latitude: '',
-      longitude: '',
+      lat: '',
+      long: '',
       manualEntry: false
     }
   },
   components: {
     VueGoogleAutocomplete
   },
-  mounted() {
-    this.getLocation()
+  props: {
+    'address': {
+      type: String,
+      default: 'Enter your address',
+    },
+    'latitude': {
+      type: Number,
+      default: 0
+    },
+    'longitude': {
+      type: Number,
+      default: 0
+    }
   },
   methods: {
-    getGoogleLocation(addressData, placeResultData, id) {
-      this.address = placeResultData.formatted_address
-      this.latitude = placeResultData.geometry.location.lat()
-      this.longitude = placeResultData.geometry.location.lng()
-      const config = {
-        address: placeResultData.formatted_address,
-        lat: placeResultData.geometry.location.lat(),
-        long: placeResultData.geometry.location.lng()
-      }
-      api.put(LOCATION_SETTINGS_URL, config)
-
-    },
-    getLocation() {
-      api.get(LOCATION_SETTINGS_URL).then(resp => {
-        this.address = resp.data.address
-        this.latitude = resp.data.lat
-        this.longitude = resp.data.long
-      })
+    getGoogleLocation(addressData, placeResultData) {
+      this.$emit(
+        'set-location',
+        placeResultData.formatted_address,
+        placeResultData.geometry.location.lat(),
+        placeResultData.geometry.location.lng()
+      )
     },
     setManualLocation() {
-      const config = {
-        address: this.address,
-        lat: this.latitude,
-        long: this.longitude
-      }
-      api.put(LOCATION_SETTINGS_URL, config)
-    }
-  }
+      this.$emit('set-location', '', this.lat, this.long)
+    },
+  },
 }
 </script>

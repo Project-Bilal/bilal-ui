@@ -4,8 +4,8 @@
       <div class="text-h6">
         Athans
       </div>
-      <div v-for="(k) in athanSettings" :key="k">
-        <q-card dark round bordered class="q-my-md" style="background-color: rgb(0,0,0, 0.1)">
+      <div v-for="(k) in settings" :key="k">
+        <q-card dark round bordered class="q-my-md" style="background-color: rgb(0, 0, 0, 0.1)">
           <q-toggle
             v-model="k.athanToggle"
             :label="k.name"
@@ -30,7 +30,7 @@
                       <q-item-label caption>{{ scope.opt.type.toUpperCase() }} | {{ scope.opt.length }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
-                      <q-icon color="blue" name="play_circle_outline" @click.prevent.stop="testSound(scope.opt.value)"/>
+                      <q-icon color="blue" name="play_circle_outline" @click.prevent.stop="testSpeaker(scope.opt.value)"/>
                     </q-item-section>
                   </q-item>
                 </template>
@@ -89,7 +89,7 @@
                         </q-item-section>
                         <q-item-section side>
                           <q-icon color="blue" name="play_circle_outline"
-                                  @click.prevent.stop="testSound(scope.opt.value)"/>
+                                  @click.prevent.stop="testSpeaker(scope.opt.value)"/>
                         </q-item-section>
                       </q-item>
                     </template>
@@ -121,87 +121,20 @@
 
 <script>
 import {api} from 'boot/axios'
-import {ATHANS_URL, ATHANS_SETTINGS_URL, PLAY_SOUND_URL} from "../utils/constants";
+import {PLAY_SOUND_URL} from "../utils/constants";
 
 export default {
   name: 'Athans',
-
-  data() {
-    return {
-      athanOptions: {},
-      athanSettings: {},
-    }
-  },
-  mounted() {
-    this.getAthanOptions()
-  },
+  props: [
+    'athanOptions',
+    'athanSettings'
+  ],
   methods: {
-    getAthanOptions() {
-      api.get(ATHANS_URL).then(resp => {
-        this.athanOptions = resp.data
-        this.getAthanSettings()
-      })
-    },
-    getAthanSettings() {
-      api.get(ATHANS_SETTINGS_URL).then(resp => {
-        this.configureSettings(resp.data)
-      })
-    },
     setPrayerSettings(a, prayer, update, isToggle) {
-      let url = ATHANS_URL + prayer + '/' + update
-      url += isToggle ? `?on=${a.value}` : '/' + a.value
-      api.put(url)
+      this.$emit('set-prayer-settings', a, prayer, update, isToggle)
     },
-    loadSettingsPerSalah(prayer, name, icon) {
-      const settings = {}
-      let data = prayer || {}
-
-      settings['name'] = name
-      settings['icon'] = icon
-      settings['volume'] = data.volume || 0
-      settings['athanToggle'] = !!data.athan_on
-      settings['notificationToggle'] = !!data.notification_on
-      settings['notificationTime'] = data.notification_time
-
-      if (data && data.audio_id) {
-        const athanInfo = this.athanOptions[data.audio_id]
-        settings['athan'] = {
-          label: athanInfo.name,
-          value: athanInfo.audio_id,
-          length: athanInfo.length,
-          type: athanInfo.type
-        }
-      }
-      if (data && data.notification_id) {
-        const notificationInfo = this.athanOptions[data.notification_id]
-        settings['notification'] = {
-          label: notificationInfo.name,
-          value: notificationInfo.audio_id,
-          length: notificationInfo.length,
-          type: notificationInfo.type
-        }
-      }
-
-      return settings
-    },
-    configureSettings(s) {
-      let fajr = s ? s.fajr : null
-      let dhuhr = s ? s.dhuhr : null
-      let asr = s ? s.asr : null
-      let maghrib = s ? s.maghrib : null
-      let isha = s ? s.isha : null
-
-
-      const allSettings = {}
-      allSettings['fajr'] = this.loadSettingsPerSalah(fajr, 'Fajr', 'mdi-weather-sunset-up')
-      allSettings['dhuhr'] = this.loadSettingsPerSalah(dhuhr, 'Dhuhr', 'mdi-weather-sunny')
-      allSettings['asr'] = this.loadSettingsPerSalah(asr, 'Asr', 'mdi-weather-partly-cloudy')
-      allSettings['maghrib'] = this.loadSettingsPerSalah(maghrib, 'Maghrib', 'mdi-weather-sunset-down')
-      allSettings['isha'] = this.loadSettingsPerSalah(isha, 'Isha', 'mdi-weather-night')
-      this.athanSettings = allSettings
-    },
-    testSound(audio) {
-      api.post(PLAY_SOUND_URL, {audio_id: audio})
+    testSpeaker(audio) {
+      this.$emit('test-speaker', audio)
     }
   },
   computed: {
@@ -220,6 +153,9 @@ export default {
         {label: '15 min', value: 15},
         {label: '30 min', value: 30}
       ]
+    },
+    settings() {
+      return this.athanSettings
     }
   }
 }
