@@ -122,7 +122,9 @@ export default {
       })
     },
     getMethodDisplay() {
-      return this.createObject(Methods[this.methodSetting]).label
+      if (Methods[this.methodSetting])
+        return this.createObject(Methods[this.methodSetting]).label
+      else return null
     }
   }
 }

@@ -128,7 +128,7 @@
 
 <script>
 import {api} from 'boot/axios'
-import {PRAYER_TIMES_URL, SPEAKER_SETTINGS_URL} from "../utils/constants";
+import {PRAYER_TIMES_URL} from "../utils/constants";
 
 export default {
   name: 'Dashboard',
@@ -156,8 +156,6 @@ export default {
     getPrayerTimes() {
       api.get(PRAYER_TIMES_URL).then(resp => {
         this.prayerTimes = resp.data
-      }).catch(e => {
-        console.log(e)
       })
     },
   },

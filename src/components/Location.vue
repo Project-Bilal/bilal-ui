@@ -4,11 +4,11 @@
       <div class="text-h6">
         Location
       </div>
-      <vue-google-autocomplete
-        id="map"
-        :placeholder="address === '' ? 'Enter your address' : address"
-        v-on:placechanged="getGoogleLocation"
-      />
+        <vue-google-autocomplete
+          id="map"
+          :placeholder="address === '' ? 'Enter your address' : address"
+          v-on:placechanged="getGoogleLocation"
+        />
     </q-card-section>
     <q-separator dark/>
     <q-card-section>
@@ -51,7 +51,7 @@
 
 <script>
 
-import VueGoogleAutocomplete from "components/./VueGoogleAutoComplete"
+import VueGoogleAutocomplete from "components/VueGoogleAutoComplete"
 
 export default {
   name: 'Location',
@@ -80,13 +80,12 @@ export default {
     }
   },
   methods: {
-    getGoogleLocation(addressData, placeResultData) {
-      this.$emit(
-        'set-location',
-        placeResultData.formatted_address,
-        placeResultData.geometry.location.lat(),
-        placeResultData.geometry.location.lng()
-      )
+    getGoogleLocation(addressData, placeResultData, id) {
+      console.log('this is triggered in get google location')
+      const resultAddress = placeResultData.formatted_address
+      const resultLat = placeResultData.geometry.location.lat()
+      const resultLong = placeResultData.geometry.location.lng()
+      this.$emit('set-location', resultAddress, resultLat, resultLong)
     },
     setManualLocation() {
       this.$emit('set-location', '', this.lat, this.long)

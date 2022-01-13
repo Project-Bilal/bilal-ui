@@ -1,12 +1,11 @@
 <template>
-  <q-input
+  <input
     ref="autocomplete"
     type="text"
     :id="id"
     :for="id"
     :placeholder="placeholder"
     :disabled="disabled"
-    dark
     @focus="onFocus()"
     @blur="onBlur()"
     @change="onChange"

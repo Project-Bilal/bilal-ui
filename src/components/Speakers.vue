@@ -14,7 +14,7 @@
                     color="white"
                     :name="speaker ? (speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker') : 'volume_off'"/>
           </div>
-          <div v-if="speaker.name" class="col-9 text-uppercase">
+          <div v-if="speaker && speaker.name" class="col-9 text-uppercase">
             {{ `${speaker.name} - ${speaker.model}` }}
           </div>
           <div v-else class="col-9 text-uppercase">
@@ -55,7 +55,7 @@
           v-for="s in speakers"
           :key="s.name"
           active
-          :active-class="s.name === speaker.name ? 'text-orange' :'text-white'"
+          :active-class="speaker && s.name === speaker.name ? 'text-orange' :'text-white'"
         >
           <q-item-section avatar>
             <q-icon

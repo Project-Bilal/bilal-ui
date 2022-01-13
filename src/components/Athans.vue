@@ -9,19 +9,20 @@
           <q-toggle
             v-model="k.athanToggle"
             :label="k.name"
-            @update:model-value="setPrayerSettings({value:k.athanToggle}, k.name.toLowerCase(), 'toggle-athan', true)"
+            @update:model-value="setPrayerSettings({value:k.athanToggle}, k.name, 'toggle-athan', true)"
           />
           <q-icon class="float-right q-ma-sm" size="sm" :name="k.icon"/>
           <q-slide-transition>
             <div v-if="k.athanToggle" class="q-pa-xs q-mx-xs">
               <q-select
+                hide-dropdown-icon
                 v-model="k.athan"
                 :label="'Select Athan'"
                 :options="getAudioList"
                 :options-dark="false"
                 behavior="dialog"
                 dark
-                @update:model-value="setPrayerSettings(k.athan, k.name.toLowerCase(), 'athan', false)"
+                @update:model-value="setPrayerSettings(k.athan, k.name, 'athan', false)"
               >
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps">
@@ -30,7 +31,7 @@
                       <q-item-label caption>{{ scope.opt.type.toUpperCase() }} | {{ scope.opt.length }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
-                      <q-icon color="blue" name="play_circle_outline" @click.prevent.stop="testSpeaker(scope.opt.value)"/>
+                      <q-btn dense flat size="md" icon="play_circle_outline" @click.prevent.stop="testSpeaker(scope.opt.value)"/>
                     </q-item-section>
                   </q-item>
                 </template>
@@ -50,7 +51,7 @@
                   :step="1"
                   :min="0"
                   :max="10"
-                  @change="setPrayerSettings({value:k.volume}, k.name.toLowerCase(), 'volume', false)"
+                  @change="setPrayerSettings({value:k.volume}, k.name, 'volume', false)"
                 />
               </q-item>
               <q-separator dark/>
@@ -58,7 +59,7 @@
                 v-model="k.notificationToggle"
                 left-label
                 color="secondary"
-                @update:model-value="setPrayerSettings({value:k.notificationToggle}, k.name.toLowerCase(), 'toggle-notification', true)"
+                @update:model-value="setPrayerSettings({value:k.notificationToggle}, k.name, 'toggle-notification', true)"
               >
                 <template #default>
                   <q-item-label caption style="color: white">
@@ -120,8 +121,6 @@
 </style>
 
 <script>
-import {api} from 'boot/axios'
-import {PLAY_SOUND_URL} from "../utils/constants";
 
 export default {
   name: 'Athans',
@@ -131,7 +130,10 @@ export default {
   ],
   methods: {
     setPrayerSettings(a, prayer, update, isToggle) {
-      this.$emit('set-prayer-settings', a, prayer, update, isToggle)
+      if (prayer && typeof prayer === "string") {
+        prayer = prayer.toLowerCase()
+        this.$emit('set-prayer-settings', a, prayer, update, isToggle)
+      }
     },
     testSpeaker(audio) {
       this.$emit('test-speaker', audio)

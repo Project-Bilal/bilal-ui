@@ -2,52 +2,56 @@
   <div>
     <meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <q-layout
+      dark
       style="background: linear-gradient(#6eb6b6 50%, #3285e5 100% )">
       <q-header reveal elevated class="bg-teal">
         <q-toolbar>
           <q-avatar icon="mosque"/>
-            <q-toolbar-title>
-              Project Bilal
-            </q-toolbar-title>
+          <q-toolbar-title>
+            Project Bilal
+          </q-toolbar-title>
         </q-toolbar>
 
       </q-header>
-      <q-page-container class="q-mb-lg">
-        <Dashboard
-          v-if="activeView === 'Dashboard'"
-          :speaker="speaker"
-          :base-u-r-l="baseURL"
-          @base-url="updateBaseURL"
-        />
-        <Settings
-          v-if="activeView === 'Settings'"
-          :athan-options="athanOptions"
-          :athan-settings="athanSettings"
-          :address="address"
-          :latitude="latitude"
-          :longitude="longitude"
-          :speaker="speaker"
-          :speakers="speakers"
-          :jurisprudence-setting="jurisprudenceSetting"
-          :method-setting="methodSetting"
-          @refresh-devices="getNetworkDevices"
-          @set-speaker="setSpeaker"
-          @set-location="setLocation"
-          @set-method="setMethod"
-          @set-jurisprudence="setJurisprudence"
-          @set-prayer-settings="setPrayerSettings"
-          @test-speaker="testSpeaker"
-        />
-        <About v-if="activeView === 'About'"/>
-      </q-page-container>
-      <q-footer reveal elevated>
+      <q-pull-to-refresh @refresh="refresh">
+        <q-page-container class="q-mb-lg">
+          <Dashboard
+            v-if="activeView === 'Dashboard'"
+            :speaker="speaker"
+            :base-u-r-l="baseURL"
+            @base-url="updateBaseURL"
+          />
+          <Settings
+            v-if="activeView === 'Settings'"
+            :athan-options="athanOptions"
+            :athan-settings="athanSettings"
+            :address="address"
+            :latitude="latitude"
+            :longitude="longitude"
+            :speaker="speaker"
+            :speakers="speakers"
+            :jurisprudence-setting="jurisprudenceSetting"
+            :method-setting="methodSetting"
+            @refresh-devices="getNetworkDevices"
+            @set-speaker="setSpeaker"
+            @set-location="setLocation"
+            @set-method="setMethod"
+            @set-jurisprudence="setJurisprudence"
+            @set-prayer-settings="setPrayerSettings"
+            @test-speaker="testSpeaker"
+          />
+          <About v-if="activeView === 'About'"/>
+        </q-page-container>
+      </q-pull-to-refresh>
+      <q-footer reveal elevated class="q-pb-sm">
         <q-tabs
           v-model="activeView"
           dense
+          switch-indicator
           class="text-grey-10 bg-transparent"
           active-color="white"
           indicator-color="teal"
-          align="justify"
+          align="center"
           animated
         >
           <q-tab :ripple="false" name="Dashboard" icon="dashboard" label="Dashboard"/>
@@ -70,7 +74,7 @@ import {
   ATHANS_URL,
   JURISPRUDENCE_SETTINGS_URL,
   LOCATION_SETTINGS_URL,
-  METHOD_SETTINGS_URL,
+  METHOD_SETTINGS_URL, PRAYER_TIMES_URL,
   SETTINGS_ALL_URL,
   SPEAKER_SETTINGS_URL,
   SPEAKERS_URL, TEST_SOUND_URL
@@ -87,8 +91,49 @@ export default defineComponent({
     return {
       activeView: 'Dashboard',
       athanOptions: {},
-      athanSettings: {},
-      methodSetting: {},
+      athanSettings: {
+        "fajr": {
+          "notification_time": null,
+          "audio_id": null,
+          "notification_id": null,
+          "athan_on": false,
+          "notification_on": false,
+          "volume": 0
+        },
+        "isha": {
+          "notification_time": null,
+          "audio_id": null,
+          "notification_id": null,
+          "athan_on": false,
+          "notification_on": false,
+          "volume": 0
+        },
+        "maghrib": {
+          "notification_time": null,
+          "audio_id": null,
+          "notification_id": null,
+          "athan_on": false,
+          "notification_on": false,
+          "volume": 2
+        },
+        "asr": {
+          "notification_time": null,
+          "audio_id": null,
+          "notification_id": null,
+          "athan_on": false,
+          "notification_on": false,
+          "volume": 2
+        },
+        "dhuhr": {
+          "notification_time": null,
+          "audio_id": null,
+          "notification_id": null,
+          "athan_on": false,
+          "notification_on": false,
+          "volume": 2
+        }
+      },
+      methodSetting: '',
       jurisprudenceSetting: '',
       location: {},
       address: '',
@@ -103,6 +148,7 @@ export default defineComponent({
   mounted() {
     const $q = useQuasar()
     this.getAllSettings()
+    this.getAthanOptions()
   },
   methods: {
     changeView(newView) {
@@ -128,6 +174,11 @@ export default defineComponent({
         }
 
         this.getNetworkDevices()
+      }).catch(this.configureSettings)
+    },
+    getAthanOptions() {
+      api.get(ATHANS_URL).then(resp => {
+        this.athanOptions = resp.data
       })
     },
     getNetworkDevices() {
@@ -140,7 +191,6 @@ export default defineComponent({
     setSpeaker(speaker) {
       this.speaker = speaker
       api.put(SPEAKER_SETTINGS_URL, speaker).catch(e => {
-        console.log(e)
       })
     },
     setLocation(address, lat, long) {
@@ -222,19 +272,31 @@ export default defineComponent({
       allSettings['isha'] = this.loadSettingsPerSalah(isha, 'Isha', 'mdi-weather-night')
       this.athanSettings = allSettings
     },
-    updateBaseURL(baseURL){
+    updateBaseURL(baseURL) {
       this.baseURL = baseURL
       api.defaults.baseURL = baseURL
+      this.getAllSettings()
     },
     testSpeaker(audio_id, speaker) {
       const testSpeaker = speaker || this.speaker
-
       const config = {
         audio_id: audio_id,
         speaker: testSpeaker
       }
       api.post(TEST_SOUND_URL, config)
+    },
+    getPrayerTimes() {
+      api.get(PRAYER_TIMES_URL).then(resp => {
+        this.prayerTimes = resp.data
+      })
+    },
+    refresh(done) {
+      this.getPrayerTimes()
+      this.getAllSettings()
+      this.getAthanOptions()
+      this.getNetworkDevices()
+      done()
     }
-  }
+  },
 })
 </script>
