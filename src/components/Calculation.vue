@@ -1,5 +1,5 @@
 <template>
-  <q-card round style="background-color: rgb(0,0,0, 0.25)">
+  <q-card round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
     <q-card-section>
       <div class="text-h6">
         Method

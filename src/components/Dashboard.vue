@@ -3,88 +3,73 @@
     <q-page class="flex flex-center text-white">
       <q-card round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
         <q-card-section>
-          <div v-if="prayerTimes" class="col text-white q-gutter-md">
+          <div class="col text-white q-gutter-md">
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunset-up"/>
               </div>
-              <div class="text-h6"
-                   :class="nameCol"
-              >
+              <div class="text-h6" :class="nameCol">
                 Fajr
               </div>
               <div :class="timeCol">
-                {{ prayerTimes.fajr }}
+                {{ prayerTimes && prayerTimes.fajr }}
               </div>
             </div>
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunset"/>
               </div>
-              <div class="text-h6"
-                   :class="nameCol"
-              >
+              <div class="text-h6" :class="nameCol">
                 Sunrise
               </div>
               <div :class="timeCol">
-                {{ prayerTimes.sunrise }}
+                {{ prayerTimes && prayerTimes.sunrise }}
               </div>
             </div>
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunny"/>
               </div>
-              <div class="text-h6"
-                   :class="nameCol"
-              >
+              <div class="text-h6" :class="nameCol">
                 Dhuhur
               </div>
               <div :class="timeCol">
-                {{ prayerTimes.dhuhr }}
+                {{ prayerTimes && prayerTimes.dhuhr }}
               </div>
             </div>
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-partly-cloudy"/>
               </div>
-              <div class="text-h6"
-                   :class="nameCol"
-              >
+              <div class="text-h6" :class="nameCol">
                 Asr
               </div>
               <div :class="timeCol">
-                {{ prayerTimes.asr }}
+                {{ prayerTimes && prayerTimes.asr }}
               </div>
             </div>
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-sunset-down"/>
               </div>
-              <div class="text-h6"
-                   :class="nameCol"
-              >
+              <div class="text-h6" :class="nameCol">
                 Maghrib
               </div>
               <div :class="timeCol">
-                {{ prayerTimes.maghrib }}
+                {{ prayerTimes && prayerTimes.maghrib }}
               </div>
             </div>
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
                 <q-icon size="md" name="mdi-weather-night"/>
               </div>
-              <div class="text-h6"
-                   :class="nameCol"
-              >
+              <div class="text-h6" :class="nameCol">
                 Isha
               </div>
               <div :class="timeCol">
-                {{ prayerTimes.isha }}
+                {{ prayerTimes && prayerTimes.isha }}
               </div>
             </div>
-          </div>
-          <div v-else class="text-subtitle1">
-            To show prayer times, please configure your settings in the settings menu
           </div>
         </q-card-section>
         <q-separator dark/>
@@ -95,8 +80,9 @@
           <div class="col q-gutter-md">
             <div class="row q-gutter-md justify-around">
               <div class="col-1">
-                <q-icon size="sm"
-                        :name="speaker ? speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker': 'volume_off'"/>
+                <q-icon
+                  size="sm"
+                  :name="speaker ? speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker': 'volume_off'"/>
               </div>
               <div v-if="speaker" class="col-9">
                 {{ `${speaker.name} - ${speaker.model}` }}
@@ -127,14 +113,12 @@
 </style>
 
 <script>
-import {api} from 'boot/axios'
-import {PRAYER_TIMES_URL} from "../utils/constants";
+
 
 export default {
   name: 'Dashboard',
   data() {
     return {
-      'prayerTimes': null,
       'newBaseURL': ''
     }
   },
@@ -144,19 +128,14 @@ export default {
     },
     'baseURL': {
       type: String
+    },
+    'prayerTimes': {
+      type: Object
     }
-  },
-  mounted() {
-    this.getPrayerTimes()
   },
   methods: {
     updateBaseURL() {
       this.$emit('base-url', this.newBaseURL)
-    },
-    getPrayerTimes() {
-      api.get(PRAYER_TIMES_URL).then(resp => {
-        this.prayerTimes = resp.data
-      })
     },
   },
   computed: {

@@ -1,43 +1,44 @@
 <template>
-  <q-page class="flex flex-center text-white">
-    <div>
-      <Location
-        class="q-my-sm"
-        :address="address"
-        :latitude="latitude"
-        :longitude="longitude"
-        @set-location="setLocation"
-      />
-      <Calculation
-        class="q-my-sm"
-        :jurisprudence-setting="jurisprudenceSetting"
-        :method-setting="methodSetting"
-        @set-method="setMethod"
-        @set-jurisprudence="setJurisprudence"
-      />
-      <Athans
-        class="q-my-sm"
-        :athan-options="athanOptions"
-        :athan-settings="athanSettings"
-        @set-prayer-settings="setPrayerSettings"
-        @test-speaker="testSpeaker"
-      />
-      <Speakers
-        class="q-my-sm"
-        :speakers="speakers"
-        :speaker="speaker"
-        @refresh-devices="refreshDevices"
-        @set-speaker="setSpeaker"
-        @test-speaker="testSpeaker"
-      />
-      <q-card round style="background-color: rgb(0,0,0, 0.25)">
-        <q-card-section>
-          <q-btn stretch color="red" class="full-width" @click="resetApp">
-            RESET APPLICATION
-          </q-btn>
-        </q-card-section>
-      </q-card>
-    </div>
+  <q-page class="text-white">
+      <div>
+        <Location
+          class="q-my-sm"
+          :address="address"
+          :latitude="latitude"
+          :longitude="longitude"
+          @set-location="setLocation"
+        />
+        <Calculation
+          class="q-my-sm"
+          :jurisprudence-setting="jurisprudenceSetting"
+          :method-setting="methodSetting"
+          @set-method="setMethod"
+          @set-jurisprudence="setJurisprudence"
+        />
+        <Athans
+          class="q-my-sm"
+          :athan-options="athanOptions"
+          :athan-settings="athanSettings"
+          @set-prayer-settings="setPrayerSettings"
+          @test-speaker="testSpeaker"
+        />
+        <Speakers
+          class="q-my-sm"
+          :speakers="speakers"
+          :speaker="speaker"
+          @refresh-devices="refreshDevices"
+          @set-speaker="setSpeaker"
+          @test-speaker="testSpeaker"
+        />
+
+        <q-card round style="background-color: rgb(0,0,0, 0.25)">
+          <q-card-section>
+            <q-btn stretch color="red" class="full-width" @click="resetApp">
+              RESET APPLICATION
+            </q-btn>
+          </q-card-section>
+        </q-card>
+      </div>
   </q-page>
 </template>
 
@@ -74,10 +75,10 @@ export default {
       type: String,
     },
     'latitude': {
-      type: Number
+      type: [Number, String],
     },
     'longitude': {
-      type: Number
+      type: [Number, String],
     },
     'methodSetting': {
       type: String

@@ -1,5 +1,12 @@
 <template>
-  <div>
+  <div
+    style="position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: auto;"
+  >
     <meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <q-layout
       dark
@@ -10,15 +17,16 @@
           <q-toolbar-title>
             Project Bilal
           </q-toolbar-title>
+          <q-avatar icon="refresh" size="lg" @click="refresh"/>
         </q-toolbar>
 
       </q-header>
-      <q-pull-to-refresh @refresh="refresh">
         <q-page-container class="q-mb-lg">
           <Dashboard
             v-if="activeView === 'Dashboard'"
             :speaker="speaker"
             :base-u-r-l="baseURL"
+            :prayer-times="prayerTimes"
             @base-url="updateBaseURL"
           />
           <Settings
@@ -42,7 +50,6 @@
           />
           <About v-if="activeView === 'About'"/>
         </q-page-container>
-      </q-pull-to-refresh>
       <q-footer reveal elevated class="q-pb-sm">
         <q-tabs
           v-model="activeView"
@@ -149,6 +156,8 @@ export default defineComponent({
     const $q = useQuasar()
     this.getAllSettings()
     this.getAthanOptions()
+    this.getPrayerTimes()
+    this.getNetworkDevices()
   },
   methods: {
     changeView(newView) {
@@ -172,8 +181,6 @@ export default defineComponent({
           this.speaker = resp.data.speaker
           this.configureSettings(resp.data.athans)
         }
-
-        this.getNetworkDevices()
       }).catch(this.configureSettings)
     },
     getAthanOptions() {
@@ -290,12 +297,12 @@ export default defineComponent({
         this.prayerTimes = resp.data
       })
     },
-    refresh(done) {
+    refresh() {
       this.getPrayerTimes()
       this.getAllSettings()
       this.getAthanOptions()
       this.getNetworkDevices()
-      done()
+
     }
   },
 })

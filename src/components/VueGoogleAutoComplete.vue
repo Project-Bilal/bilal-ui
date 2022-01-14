@@ -1,5 +1,7 @@
 <template>
-  <input
+  <q-input
+    dense
+    dark
     ref="autocomplete"
     type="text"
     :id="id"

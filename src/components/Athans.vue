@@ -1,7 +1,7 @@
 <template>
-  <q-card dark round style="background-color: rgb(0,0,0, 0.25)">
+  <q-card dark round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
     <q-card-section>
-      <div class="text-h6">
+      <div class="text-h5">
         Athans
       </div>
       <div v-for="(k) in settings" :key="k">
@@ -9,6 +9,7 @@
           <q-toggle
             v-model="k.athanToggle"
             :label="k.name"
+            class="text-h6"
             @update:model-value="setPrayerSettings({value:k.athanToggle}, k.name, 'toggle-athan', true)"
           />
           <q-icon class="float-right q-ma-sm" size="sm" :name="k.icon"/>
@@ -19,7 +20,7 @@
                 v-model="k.athan"
                 :label="'Select Athan'"
                 :options="getAudioList"
-                :options-dark="false"
+                options-dense
                 behavior="dialog"
                 dark
                 @update:model-value="setPrayerSettings(k.athan, k.name, 'athan', false)"
@@ -27,12 +28,23 @@
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps">
                     <q-item-section>
-                      <q-item-label>{{ scope.opt.label }}</q-item-label>
-                      <q-item-label caption>{{ scope.opt.type.toUpperCase() }} | {{ scope.opt.length }}</q-item-label>
+                      <q-item-label>Name: {{ scope.opt.label }}</q-item-label>
+                      <q-item-label caption>Type: {{ scope.opt.type.toUpperCase() }}
+                        <q-media-player
+                          type="audio"
+                          mobile-mode
+                          show-spinner
+                          dense
+                          dark
+                          hide-volume-btn
+                          :volume="100"
+                          :autoplay="false"
+                          :source="'https://drive.google.com/uc?id='+scope.opt.value"
+                        />
+                      </q-item-label>
+                      <q-separator dark/>
                     </q-item-section>
-                    <q-item-section side>
-                      <q-btn dense flat size="md" icon="play_circle_outline" @click.prevent.stop="testSpeaker(scope.opt.value)"/>
-                    </q-item-section>
+
                   </q-item>
                 </template>
               </q-select>
@@ -62,7 +74,7 @@
                 @update:model-value="setPrayerSettings({value:k.notificationToggle}, k.name, 'toggle-notification', true)"
               >
                 <template #default>
-                  <q-item-label caption style="color: white">
+                  <q-item-label style="color: white" class="text-subtitle1">
                     Pre-Athan Notification
                   </q-item-label>
                 </template>
@@ -73,25 +85,32 @@
                     v-model="k.notification"
                     :label="'Select Notification'"
                     :options="getAudioList"
-                    :options-dark="false"
                     behavior="dialog"
                     dark
-                    dense
                     @update:model-value="setPrayerSettings(k.notification, k.name.toLowerCase(), 'notification', false)"
                   >
                     <template v-slot:option="scope">
                       <q-item v-bind="scope.itemProps">
                         <q-item-section>
-                          <q-item-label>{{ scope.opt.label }}</q-item-label>
-                          <q-item-label caption>{{ scope.opt.type.toUpperCase() }} | {{
-                              scope.opt.length
-                            }}
+                          <q-item-label>Name: {{ scope.opt.label }}</q-item-label>
+                          <q-item-label caption>Type: {{ scope.opt.type.toUpperCase() }}
+
+                            <q-media-player
+                              type="audio"
+                              mobile-mode
+                              show-spinner
+                              dense
+                              dark
+                              hide-volume-btn
+                              :volume="100"
+                              :autoplay="false"
+                              :source="'https://drive.google.com/uc?id='+scope.opt.value"
+                            />
+
                           </q-item-label>
+                          <q-separator dark/>
                         </q-item-section>
-                        <q-item-section side>
-                          <q-icon color="blue" name="play_circle_outline"
-                                  @click.prevent.stop="testSpeaker(scope.opt.value)"/>
-                        </q-item-section>
+
                       </q-item>
                     </template>
                   </q-select>
@@ -101,7 +120,7 @@
                     class="q-mt-sm"
                     dark
                     flat
-                    size="sm"
+                    size="md"
                     spread
                     toggle-color="secondary"
                     :options="getNotificationOptions"
@@ -150,10 +169,10 @@ export default {
     },
     getNotificationOptions() {
       return [
-        {label: '5 min', value: 5},
-        {label: '10 min', value: 10},
-        {label: '15 min', value: 15},
-        {label: '30 min', value: 30}
+        {label: '5m', value: 5},
+        {label: '10m', value: 10},
+        {label: '15m', value: 15},
+        {label: '30m', value: 30}
       ]
     },
     settings() {
