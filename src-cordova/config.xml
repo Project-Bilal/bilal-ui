@@ -1,15 +1,20 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.projectbilal" version="0.0.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.projectbilal" version="0.0.7" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Project Bilal</name>
     <description>An Athan Manager</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
-        Apache Cordova Team
-    </author>
+    Apache Cordova Team
+  </author>
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <allow-navigation href="about:*" />
     <platform name="ios">
         <preference name="ScrollEnabled" value="true" />
+        <preference name="AllowInlineMediaPlayback" value="true" />
+        <preference name="DisallowOverscroll" value="true" />
+        <edit-config file="*-Info.plist" mode="merge" target="NSLocationWhenInUseUsageDescription">
+            <string>Use location access to determine proper prayer times.</string>
+        </edit-config>
     </platform>
 </widget>

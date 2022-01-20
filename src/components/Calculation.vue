@@ -2,16 +2,14 @@
   <q-card round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
     <q-card-section>
       <div class="text-h6">
-        Method
+        Calculation
       </div>
       <q-select
         dark
-        v-model="method"
+        :model-value="method.label"
         :options="getCalcOptions"
-        :display-value="getMethodDisplay"
-        label="Calculation"
+        label="Method"
         behavior="dialog"
-        :options-dark="false"
         @update:model-value="setMethod"
       >
         <template v-slot:option="scope">
@@ -29,10 +27,8 @@
       </q-select>
       <q-select
         dark
-        v-model="jurisprudence"
+        :model-value="jurisprudence.label"
         :options="Jurisprudence"
-        :display-value="jurisprudenceSetting"
-        :options-dark="false"
         label="Jurisprudence"
         @update:model-value="setJurisprudence"
       >
@@ -63,24 +59,22 @@ export default {
   data() {
     return {
       Jurisprudence,
-      jurisprudence: '',
-      method: '',
     }
   },
   props: {
-    'methodSetting': {
-      type: String
+    'method': {
+      type: Object
     },
-    'jurisprudenceSetting': {
-      type: String
+    'jurisprudence': {
+      type: Object
     },
   },
   methods: {
     setMethod(method) {
-      this.$emit('set-method', method.value)
+      this.$emit('set-method', method)
     },
     setJurisprudence(jurisprudence) {
-      this.$emit('set-jurisprudence', jurisprudence.label)
+      this.$emit('set-jurisprudence', jurisprudence)
     },
     createObject(a) {
       const r = {
@@ -122,8 +116,8 @@ export default {
       })
     },
     getMethodDisplay() {
-      if (Methods[this.methodSetting])
-        return this.createObject(Methods[this.methodSetting]).label
+      if (Methods[this.method])
+        return this.createObject(Methods[this.method]).label
       else return null
     }
   }

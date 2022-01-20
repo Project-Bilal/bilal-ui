@@ -1,51 +1,67 @@
-<template>
+<template id="Athans">
   <q-card dark round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
     <q-card-section>
       <div class="text-h5">
         Athans
       </div>
-      <div v-for="(k) in settings" :key="k">
+      <div v-for="(k) in athanSettings" :key="k">
         <q-card dark round bordered class="q-my-md" style="background-color: rgb(0, 0, 0, 0.1)">
           <q-toggle
-            v-model="k.athanToggle"
+            :model-value="k.athanToggle"
             :label="k.name"
             class="text-h6"
-            @update:model-value="setPrayerSettings({value:k.athanToggle}, k.name, 'toggle-athan', true)"
+            @click="setPrayerSettings(!k.athanToggle, k.name, 'toggle-athan')"
           />
           <q-icon class="float-right q-ma-sm" size="sm" :name="k.icon"/>
           <q-slide-transition>
             <div v-if="k.athanToggle" class="q-pa-xs q-mx-xs">
               <q-select
-                hide-dropdown-icon
-                v-model="k.athan"
-                :label="'Select Athan'"
+                :model-value="k.athan.label"
+                label="Select Athan"
                 :options="getAudioList"
-                options-dense
                 behavior="dialog"
                 dark
-                @update:model-value="setPrayerSettings(k.athan, k.name, 'athan', false)"
               >
                 <template v-slot:option="scope">
-                  <q-item v-bind="scope.itemProps">
-                    <q-item-section>
-                      <q-item-label>Name: {{ scope.opt.label }}</q-item-label>
-                      <q-item-label caption>Type: {{ scope.opt.type.toUpperCase() }}
-                        <q-media-player
-                          type="audio"
-                          mobile-mode
-                          show-spinner
-                          dense
-                          dark
-                          hide-volume-btn
-                          :volume="100"
-                          :autoplay="false"
-                          :source="'https://drive.google.com/uc?id='+scope.opt.value"
-                        />
-                      </q-item-label>
+                  <q-expansion-item
+                    expand-separator
+                    dark
+                    :header-style="{backgroundColor: 'teal'}"
+                    :default-opened="hasChild(scope, k.athan)"
+                    header-class="text-weight-bold"
+                    :label="scope.opt.label"
+                  >
+                    <template v-for="child in scope.opt.children" :key="child.label">
                       <q-separator dark/>
-                    </q-item-section>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        :class=" k.athan.value === child.value ? 'text-teal' : 'text-white' "
+                      >
+                        <q-item-section>
+                          <q-item-label
+                            @click="setPrayerSettings(child.value, k.name, 'athan')"
+                          >
+                            {{ child.desc }}
+                          </q-item-label>
+                          <q-item-label caption class="text-white">
+                            <q-media-player
+                              type="audio"
+                              mobile-mode
+                              show-spinner
+                              dense
+                              dark
+                              hide-volume-btn
+                              :volume="100"
+                              :autoplay="false"
+                              :source="'https://storage.googleapis.com/athans/'+ child.value +'.mp3'"
+                            />
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
 
-                  </q-item>
+                  </q-expansion-item>
                 </template>
               </q-select>
               <q-item>
@@ -53,25 +69,22 @@
                   <q-icon name="volume_up"/>
                 </q-item-section>
                 <q-slider
+                  :model-value="k.volume"
                   switch-label-side
                   dark
-                  v-model="k.volume"
                   snap
-                  label
-                  :label-value="'volume: ' + k.volume"
-                  label-color="secondary"
                   :step="1"
                   :min="0"
                   :max="10"
-                  @change="setPrayerSettings({value:k.volume}, k.name, 'volume', false)"
+                  @change="(a)=>setPrayerSettings(a,k.name, 'volume')"
                 />
               </q-item>
               <q-separator dark/>
               <q-toggle
-                v-model="k.notificationToggle"
+                :model-value="k.notificationToggle"
                 left-label
-                color="secondary"
-                @update:model-value="setPrayerSettings({value:k.notificationToggle}, k.name, 'toggle-notification', true)"
+                color="primary"
+                @update:model-value="setPrayerSettings(!k.notificationToggle, k.name, 'toggle-notification')"
               >
                 <template #default>
                   <q-item-label style="color: white" class="text-subtitle1">
@@ -82,50 +95,89 @@
               <q-slide-transition>
                 <div v-show="k.notificationToggle">
                   <q-select
-                    v-model="k.notification"
-                    :label="'Select Notification'"
+                    :model-value="k.notification.label"
+                    label="Select Notification"
                     :options="getAudioList"
                     behavior="dialog"
                     dark
-                    @update:model-value="setPrayerSettings(k.notification, k.name.toLowerCase(), 'notification', false)"
                   >
                     <template v-slot:option="scope">
-                      <q-item v-bind="scope.itemProps">
-                        <q-item-section>
-                          <q-item-label>Name: {{ scope.opt.label }}</q-item-label>
-                          <q-item-label caption>Type: {{ scope.opt.type.toUpperCase() }}
-
-                            <q-media-player
-                              type="audio"
-                              mobile-mode
-                              show-spinner
-                              dense
-                              dark
-                              hide-volume-btn
-                              :volume="100"
-                              :autoplay="false"
-                              :source="'https://drive.google.com/uc?id='+scope.opt.value"
-                            />
-
-                          </q-item-label>
+                      <q-expansion-item
+                        expand-separator
+                        dark
+                        :header-style="{backgroundColor: 'teal'}"
+                        :default-opened="hasChild(scope, k.notification)"
+                        header-class="text-weight-bold"
+                        :label="scope.opt.label"
+                      >
+                        <template v-for="child in scope.opt.children" :key="child.label">
                           <q-separator dark/>
-                        </q-item-section>
-
-                      </q-item>
+                          <q-item
+                            clickable
+                            v-close-popup
+                            :class=" k.notification.value === child.value ? 'text-teal' : 'text-white' "
+                          >
+                            <q-item-section>
+                              <q-item-label
+                                @click="setPrayerSettings(child.value, k.name, 'notification');"
+                              >
+                                {{ child.desc }}
+                              </q-item-label>
+                              <q-item-label caption class="text-white">
+                                <q-media-player
+                                  type="audio"
+                                  mobile-mode
+                                  show-spinner
+                                  dense
+                                  dark
+                                  hide-volume-btn
+                                  :volume="100"
+                                  :autoplay="false"
+                                  :source="'https://storage.googleapis.com/athans/'+ child.value +'.mp3'"
+                                />
+                              </q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-expansion-item>
                     </template>
                   </q-select>
-                  <q-btn-toggle
-                    v-show="k.notificationToggle"
-                    v-model="k.notificationTime"
-                    class="q-mt-sm"
-                    dark
-                    flat
-                    size="md"
-                    spread
-                    toggle-color="secondary"
-                    :options="getNotificationOptions"
-                    @update:model-value="setPrayerSettings({value:k.notificationTime}, k.name.toLowerCase(), 'notification-time', false)"
-                  />
+                  <q-btn-group dark rounded flat class="q-mt-sm" push spread>
+                    <q-btn
+                      flat
+                      color="white"
+                      :class="k.notificationTime === 5 ? 'text-teal-4': 'text-white'"
+                      @click="setPrayerSettings(5, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      5 min
+
+                    </q-btn>
+                    <q-btn
+                      dark
+                      flat
+                      color="white"
+                      :class="k.notificationTime === 10 ? 'text-teal-4': 'text-white'"
+                      @click="setPrayerSettings(10, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      10 min
+                    </q-btn>
+                    <q-btn
+                      flat
+                      color="white"
+                      :class="k.notificationTime === 15 ? 'text-teal-4': 'text-white'"
+                      @click="setPrayerSettings(15, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      15 min
+                    </q-btn>
+                    <q-btn
+                      flat
+                      color="white"
+                      :class="k.notificationTime === 30 ? 'text-teal-4': 'text-white'"
+                      @click="setPrayerSettings(30, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      30 Min
+                    </q-btn>
+                  </q-btn-group>
                 </div>
               </q-slide-transition>
             </div>
@@ -148,25 +200,23 @@ export default {
     'athanSettings'
   ],
   methods: {
-    setPrayerSettings(a, prayer, update, isToggle) {
+    setPrayerSettings(a, prayer, update) {
       if (prayer && typeof prayer === "string") {
         prayer = prayer.toLowerCase()
-        this.$emit('set-prayer-settings', a, prayer, update, isToggle)
+        this.$emit('set-prayer-settings', a, prayer, update)
       }
     },
     testSpeaker(audio) {
       this.$emit('test-speaker', audio)
+    },
+    getLabel(scope) {
+      return scope.label
+    },
+    hasChild(scope, athan) {
+      return scope.opt.children.some(c => c.value === athan.value)
     }
   },
   computed: {
-    getAudioList() {
-      if (this.athanOptions) {
-        return Object.values(this.athanOptions).map(a => {
-          return {label: a.name, value: a.audio_id, length: a.length, type: a.type,}
-        })
-      }
-      return []
-    },
     getNotificationOptions() {
       return [
         {label: '5m', value: 5},
@@ -175,8 +225,25 @@ export default {
         {label: '30m', value: 30}
       ]
     },
-    settings() {
-      return this.athanSettings
+    getAudioList() {
+      const options = [
+        {label: 'Fajr Athans', children: []},
+        {label: 'Athans', children: []},
+        {label: 'Notifications', children: []},
+        {label: 'Takbirat and Duah', children: []}
+      ]
+
+      Object.values(this.athanOptions).map(a => {
+        if (a.type === 'fajr')
+          options[0].children.push({label: a.name, desc: a.desc, value: a.audio_id, length: a.length, type: a.type})
+        if (a.type === 'athan')
+          options[1].children.push({label: a.name, desc: a.desc, value: a.audio_id, length: a.length, type: a.type})
+        if (a.type === 'notification')
+          options[2].children.push({label: a.name, desc: a.desc, value: a.audio_id, length: a.length, type: a.type})
+        if (a.type === 'takbir')
+          options[3].children.push({label: a.name, desc: a.desc, value: a.audio_id, length: a.length, type: a.type})
+      })
+      return options
     }
   }
 }

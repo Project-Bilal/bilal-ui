@@ -1,10 +1,10 @@
 <template>
   <q-card dark round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
     <q-card-section>
-      <div class="text-h6">
+      <div class="text-h5">
         Speakers
       </div>
-      <div class="text-subtitle1">
+      <div class="text-h6">
         Selected
       </div>
       <div class="col q-gutter-md">
@@ -25,7 +25,7 @@
     </q-card-section>
     <q-separator dark/>
     <q-card-section>
-      <div class="text-subtitle1">
+      <div class="text-h6">
         Available
         <q-icon name="info">
           <q-popup-proxy>
@@ -42,7 +42,8 @@
             </q-banner>
           </q-popup-proxy>
         </q-icon>
-        <q-icon title="refresh" class="float-right" size="sm" name="refresh" @click="$emit('refresh-devices')"/>
+        <q-btn dark :loading="loadingSpeakers" icon="refresh" size="sm" title="refresh" class="float-right"
+               @click="$emit('refresh-devices')"/>
       </div>
       <q-banner v-if="speakers.length === 0" class="bg-transparent text-amber">
         <template v-slot:avatar>
@@ -57,20 +58,13 @@
           active
           :active-class="speaker && s.name === speaker.name ? 'text-orange' :'text-white'"
         >
-          <q-item-section avatar>
-            <q-icon
-              sizze="lg"
-              color="white"
-              :name="s.cast_type === 'Group' ? 'speaker_group' :  'speaker'"
-            />
-          </q-item-section>
           <q-item-section>
-            <q-btn flat dense align="left" @click="setSpeaker(s)">
+            <q-btn :icon="s.cast_type === 'Group' ? 'speaker_group' :  'speaker'" align="left" @click="setSpeaker(s)">
               {{ s.name }}
             </q-btn>
           </q-item-section>
           <q-item-section side>
-            <q-btn dense flat size="sm" class="text-amber" @click="testSound(s)">Test</q-btn>
+            <q-btn size="sm" class="text-amber" @click="testSound(s)">Test</q-btn>
           </q-item-section>
         </q-item>
       </q-list>
@@ -80,8 +74,6 @@
 
 
 <script>
-import {api} from 'boot/axios'
-import {TEST_SOUND_URL} from "../utils/constants";
 
 export default {
   name: 'Speakers',
@@ -91,6 +83,9 @@ export default {
     },
     'speaker': {
       type: Object
+    },
+    'loadingSpeakers': {
+      type: Boolean
     }
   },
   methods: {

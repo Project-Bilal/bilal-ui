@@ -1,54 +1,57 @@
 <template>
   <q-page class="text-white">
-      <div>
-        <Location
-          class="q-my-sm"
-          :address="address"
-          :latitude="latitude"
-          :longitude="longitude"
-          @set-location="setLocation"
-        />
-        <Calculation
-          class="q-my-sm"
-          :jurisprudence-setting="jurisprudenceSetting"
-          :method-setting="methodSetting"
-          @set-method="setMethod"
-          @set-jurisprudence="setJurisprudence"
-        />
-        <Athans
-          class="q-my-sm"
-          :athan-options="athanOptions"
-          :athan-settings="athanSettings"
-          @set-prayer-settings="setPrayerSettings"
-          @test-speaker="testSpeaker"
-        />
-        <Speakers
-          class="q-my-sm"
-          :speakers="speakers"
-          :speaker="speaker"
-          @refresh-devices="refreshDevices"
-          @set-speaker="setSpeaker"
-          @test-speaker="testSpeaker"
-        />
+    <div>
+      <Location
+        class="q-my-sm"
+        :timezone="timezone"
+        :latitude="latitude"
+        :longitude="longitude"
+        :loading-location="loadingLocation"
+        @set-location="setLocation"
+        @get-geo-location="getGeoLocation"
+      />
 
-        <q-card round style="background-color: rgb(0,0,0, 0.25)">
-          <q-card-section>
-            <q-btn stretch color="red" class="full-width" @click="resetApp">
-              RESET APPLICATION
-            </q-btn>
-          </q-card-section>
-        </q-card>
-      </div>
+      <Calculation
+        class="q-my-sm"
+        :jurisprudence="jurisprudence"
+        :method="method"
+        @set-method="setMethod"
+        @set-jurisprudence="setJurisprudence"
+      />
+      <Athans
+        class="q-my-sm"
+        :athan-options="athanOptions"
+        :athan-settings="athanSettings"
+        @set-prayer-settings="setPrayerSettings"
+        @test-speaker="testSpeaker"
+      />
+      <Speakers
+        class="q-my-sm"
+        :speakers="speakers"
+        :speaker="speaker"
+        :loading-speakers="loadingSpeakers"
+        @refresh-devices="refreshDevices"
+        @set-speaker="setSpeaker"
+        @test-speaker="testSpeaker"
+      />
+
+      <q-card round style="background-color: rgb(0,0,0, 0.25)">
+        <q-card-section>
+          <q-space class="q-pb-lg"/>
+        </q-card-section>
+      </q-card>
+      <q-page-sticky position="bottom" :offset="[0, 23]">
+        <q-btn  fab icon="save" color="primary" class="full-width" @click="saveSettings">Save Settings</q-btn>
+      </q-page-sticky>
+    </div>
   </q-page>
 </template>
 
 <script>
-import {api} from 'boot/axios'
 import Athans from "components/Athans";
 import Calculation from "components/Calculation";
 import Location from "components/Location";
 import Speakers from "components/Speakers";
-import {RESET_SETTINGS_URL, TEST_SOUND_URL} from "../utils/constants";
 
 export default {
   name: 'Settings',
@@ -71,7 +74,7 @@ export default {
     'speaker': {
       type: Object
     },
-    'address': {
+    'timezone': {
       type: String,
     },
     'latitude': {
@@ -80,16 +83,22 @@ export default {
     'longitude': {
       type: [Number, String],
     },
-    'methodSetting': {
-      type: String
+    'loadingSpeakers':{
+      type: Boolean
     },
-    'jurisprudenceSetting': {
-      type: String
+    'loadingLocation': {
+      type: Boolean
+    },
+    'method': {
+      type: Object
+    },
+    'jurisprudence': {
+      type: Object
     },
   },
   methods: {
     resetApp() {
-      api.delete(RESET_SETTINGS_URL)
+      this.$emit('reset')
     },
     refreshDevices() {
       this.$emit('refresh-devices')
@@ -97,8 +106,11 @@ export default {
     setSpeaker(speaker) {
       this.$emit('set-speaker', speaker)
     },
-    setLocation(address, lat, long) {
-      this.$emit('set-location', address, lat, long)
+    setLocation(lat, long) {
+      this.$emit('set-location', lat, long)
+    },
+    getGeoLocation() {
+      this.$emit('get-geo-location')
     },
     setMethod(method) {
       this.$emit('set-method', method)
@@ -106,13 +118,15 @@ export default {
     setJurisprudence(jurisprudence) {
       this.$emit('set-jurisprudence', jurisprudence)
     },
-    setPrayerSettings(a, prayer, update, isToggle) {
-      this.$emit('set-prayer-settings', a.value, prayer, update, isToggle)
+    setPrayerSettings(a, prayer, update) {
+      this.$emit('set-prayer-settings', a, prayer, update)
     },
     testSpeaker(audio_id, speaker) {
       this.$emit('test-speaker', audio_id, speaker)
+    },
+    saveSettings(){
+      this.$emit('save-settings')
     }
-
   }
 }
 </script>

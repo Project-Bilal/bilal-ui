@@ -1,8 +1,19 @@
 <template>
   <q-card round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
-    <q-card-section class="q-pb-xl">
-      <div class="text-h6 q-pb-s">
+    <q-card-section>
+      <div class="text-h6 q-pb-sm">
         Location
+      </div>
+
+      <q-input label-color="white" bg-color="teal-6" dark outlined dense v-if="latitude" disable
+               :placeholder="'Latitude '+latitude"/>
+      <q-input bg-color="teal-6" outlined dense disable dark v-if="longitude" :placeholder="'Longitude '+longitude"/>
+
+      <q-btn class="full-width" :loading="loadingLocation" color="primary" @click="getGeoLocation">
+        Detect Device Location
+      </q-btn>
+      <q-toggle v-model="toggleManual">
+        Set Location Manually
         <q-icon name="info" size="sm">
           <q-popup-proxy>
             <q-banner>
@@ -17,28 +28,30 @@
             </q-banner>
           </q-popup-proxy>
         </q-icon>
-
+      </q-toggle>
+      <q-form v-if="toggleManual" class="q-gutter-md  q-mt-md">
         <q-input
           v-model="lat"
-          class="q-mb-md"
           outlined
           hint="Latitude"
-          :placeholder="latitude !== 0 && latitude"
+          :placeholder="latitude !== 0 ? latitude: null"
           clearable
           dark
-          dense
         />
         <q-input
           v-model="long"
           outlined
           hint="Longitude"
-          :placeholder="longitude !== 0 && longitude "
+          :placeholder="longitude !== 0 ? longitude :null"
           clearable
           dark
-          dense
         />
-        <q-btn class="float-right" :disabled="!lat || !long" padding="sm" color="teal" @click="setManualLocation">submit</q-btn>
-      </div>
+        <q-btn stretch :disabled="!lat || !long" color="teal" @click="setManualLocation">
+          submit
+        </q-btn>
+      </q-form>
+
+
     </q-card-section>
   </q-card>
 </template>
@@ -51,25 +64,31 @@ export default {
     return {
       lat: '',
       long: '',
+      toggleManual: false
     }
   },
   props: {
-    'address': {
+    'timezone': {
       type: String,
-      default: 'Enter your address',
     },
     'latitude': {
       type: [Number, String],
-      default: 0
     },
     'longitude': {
       type: [Number, String],
-      default: 0
+    },
+    'loadingLocation': {
+      type: Boolean
     }
   },
   methods: {
     setManualLocation() {
-      this.$emit('set-location', '', this.lat, this.long)
+      this.$emit('set-location', this.lat, this.long)
+      this.lat = ''
+      this.long = ''
+    },
+    getGeoLocation() {
+      this.$emit('get-geo-location')
     },
   },
 }

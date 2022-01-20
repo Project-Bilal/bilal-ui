@@ -3,6 +3,14 @@
     <q-page class="flex flex-center text-white">
       <q-card round style="width: 100%; background-color: rgb(0,0,0, 0.25)">
         <q-card-section>
+          <q-banner rounded class="bg-primary" :title="getHijri">
+            <div class="text-h6 text-center text-white">
+              {{ getHijri() }}
+            </div>
+          </q-banner>
+        </q-card-section>
+        <q-separator dark/>
+        <q-card-section>
           <div class="col text-white q-gutter-md">
             <div class="row q-gutter-md justify-around text-h6">
               <div class="col-1">
@@ -93,17 +101,6 @@
             </div>
           </div>
         </q-card-section>
-        <q-card-section>
-          <q-input
-            v-model="newBaseURL"
-            label="New Base URL"
-            label-color="orange"
-            dark
-            hint="add the trailing slash, and click out of this text box to save"
-            :placeholder="baseURL"
-            @update:model-value="updateBaseURL"
-          />
-        </q-card-section>
       </q-card>
     </q-page>
   </div>
@@ -114,14 +111,10 @@
 
 <script>
 
+import {getHijriDate} from "src/utils/hijriDate";
 
 export default {
   name: 'Dashboard',
-  data() {
-    return {
-      'newBaseURL': ''
-    }
-  },
   props: {
     'speaker': {
       type: Object
@@ -134,9 +127,9 @@ export default {
     }
   },
   methods: {
-    updateBaseURL() {
-      this.$emit('base-url', this.newBaseURL)
-    },
+    getHijri() {
+      return getHijriDate()
+    }
   },
   computed: {
     timeCol() {
@@ -144,7 +137,7 @@ export default {
     },
     nameCol() {
       return 'col-3'
-    },
+    }
   }
 }
 </script>

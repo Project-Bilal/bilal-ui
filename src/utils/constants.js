@@ -1,3 +1,5 @@
+export const ATHANS_GOOGLE_URL = "/athans/"
+// export const ATHANS_GOOGLE_URL = "https://us-central1-project-bilal-338505.cloudfunctions.net/get-athans"
 export const ATHANS_URL = "/athans/"
 export const ATHANS_SETTINGS_URL = "/athans/settings"
 export const PRAYER_TIMES_URL = "/prayer-times"

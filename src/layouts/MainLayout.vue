@@ -1,45 +1,41 @@
 <template>
-  <div
-    style="position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow: auto;"
-  >
-    <meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <div>
+    <meta name="viewport"
+          content="width=device-width, viewport-fit=cover, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <q-layout
       dark
-      style="background: linear-gradient(#6eb6b6 50%, #3285e5 100% )">
-      <q-header reveal elevated class="bg-teal">
-        <q-toolbar>
-          <q-avatar icon="mosque"/>
-          <q-toolbar-title>
-            Project Bilal
-          </q-toolbar-title>
-          <q-avatar icon="refresh" size="lg" @click="refresh"/>
-        </q-toolbar>
-
-      </q-header>
+      class="overflow-hidden-y full-height"
+      style="background: linear-gradient(#5cecec 50%, #3285e5 100% )"
+    >
+      <q-pull-to-refresh @refresh="refresh">
+        <q-header reveal elevated class="bg-teal">
+          <q-toolbar>
+            <q-avatar icon="mosque"/>
+            <q-toolbar-title>
+              Project Bilal
+            </q-toolbar-title>
+            <q-btn icon="refresh" @click="refresh"/>
+          </q-toolbar>
+        </q-header>
         <q-page-container class="q-mb-lg">
           <Dashboard
             v-if="activeView === 'Dashboard'"
             :speaker="speaker"
-            :base-u-r-l="baseURL"
             :prayer-times="prayerTimes"
-            @base-url="updateBaseURL"
           />
           <Settings
             v-if="activeView === 'Settings'"
             :athan-options="athanOptions"
             :athan-settings="athanSettings"
-            :address="address"
+            :timezone="timezone"
             :latitude="latitude"
             :longitude="longitude"
             :speaker="speaker"
             :speakers="speakers"
-            :jurisprudence-setting="jurisprudenceSetting"
-            :method-setting="methodSetting"
+            :jurisprudence="jurisprudence"
+            :method="method"
+            :loading-speakers="loadingSpeakers"
+            :loading-location="loadingLocation"
             @refresh-devices="getNetworkDevices"
             @set-speaker="setSpeaker"
             @set-location="setLocation"
@@ -47,9 +43,13 @@
             @set-jurisprudence="setJurisprudence"
             @set-prayer-settings="setPrayerSettings"
             @test-speaker="testSpeaker"
+            @get-geo-location="getGeoLocation"
+            @reset="resetApp"
+            @save-settings="saveSettings"
           />
           <About v-if="activeView === 'About'"/>
         </q-page-container>
+      </q-pull-to-refresh>
       <q-footer reveal elevated class="q-pb-sm">
         <q-tabs
           v-model="activeView"
@@ -72,20 +72,23 @@
 
 <script>
 import {defineComponent} from 'vue'
-import {useQuasar} from 'quasar'
+import localStorage from 'local-storage'
 import {api} from 'boot/axios'
+import {DateTime} from 'luxon'
+import PrayTimes from "src/utils/PrayTimes";
 import About from "components/About";
 import Dashboard from "components/Dashboard";
 import Settings from "components/Settings";
-import {
-  ATHANS_URL,
-  JURISPRUDENCE_SETTINGS_URL,
-  LOCATION_SETTINGS_URL,
-  METHOD_SETTINGS_URL, PRAYER_TIMES_URL,
-  SETTINGS_ALL_URL,
-  SPEAKER_SETTINGS_URL,
-  SPEAKERS_URL, TEST_SOUND_URL
-} from "src/utils/constants";
+import {Athans, ATHAN_SETTINGS_DEFAULT} from "src/utils/athans";
+import {RESET_SETTINGS_URL, SPEAKERS_URL, TEST_SOUND_URL} from "src/utils/constants";
+
+
+const UPDATE_MAP = {
+  'notification-time': 'notificationTime',
+  'toggle-athan': 'athanToggle',
+  'toggle-notification': 'notificationToggle',
+  'volume': 'volume'
+}
 
 export default defineComponent({
   name: 'MainLayout',
@@ -96,193 +99,153 @@ export default defineComponent({
   },
   data() {
     return {
+      localStorage,
+      // Values instantiated every app launch
       activeView: 'Dashboard',
-      athanOptions: {},
-      athanSettings: {
-        "fajr": {
-          "notification_time": null,
-          "audio_id": null,
-          "notification_id": null,
-          "athan_on": false,
-          "notification_on": false,
-          "volume": 0
-        },
-        "isha": {
-          "notification_time": null,
-          "audio_id": null,
-          "notification_id": null,
-          "athan_on": false,
-          "notification_on": false,
-          "volume": 0
-        },
-        "maghrib": {
-          "notification_time": null,
-          "audio_id": null,
-          "notification_id": null,
-          "athan_on": false,
-          "notification_on": false,
-          "volume": 2
-        },
-        "asr": {
-          "notification_time": null,
-          "audio_id": null,
-          "notification_id": null,
-          "athan_on": false,
-          "notification_on": false,
-          "volume": 2
-        },
-        "dhuhr": {
-          "notification_time": null,
-          "audio_id": null,
-          "notification_id": null,
-          "athan_on": false,
-          "notification_on": false,
-          "volume": 2
-        }
+      athanOptions: Athans,
+      baseURL: 'http://localhost:5002',
+      loadingSpeakers: false,
+      loadingLocation: false,
+      prayerTimes: {},
+      speakers: [],
+      // Values brought in by local storage on app launch
+      athanSettings: ATHAN_SETTINGS_DEFAULT,
+      jurisprudence: {
+        label: null,
+        value: null
       },
-      methodSetting: '',
-      jurisprudenceSetting: '',
-      location: {},
-      address: '',
       latitude: 0,
       longitude: 0,
-      prayerTimes: {},
+      offset: 0,
+      method: {
+        label: null,
+        value: null
+      },
       speaker: {},
-      speakers: [],
-      baseURL: 'http://localhost:5002'
+      timezone: '',
     }
   },
+  watch: {
+    athanSettings: {
+      deep: true,
+      handler: function (newVal) {
+        this.localStorage('athanSettings', newVal)
+      }
+    },
+    jurisprudence() {
+      this.localStorage('jurisprudence', this.jurisprudence)
+    },
+    latitude() {
+      this.localStorage('latitude', this.latitude)
+    },
+    longitude() {
+      this.localStorage('longitude', this.longitude)
+    },
+    offset() {
+      this.localStorage('offset', this.offset)
+    },
+    method() {
+      this.localStorage('method', this.method)
+    },
+    speaker() {
+      this.localStorage('speaker', this.speaker)
+    },
+    timezone() {
+      this.localStorage('timezone', this.timezone)
+    },
+  },
+  beforeMount() {
+    const loadedValues = ['athanSettings', 'jurisprudence', 'latitude', 'longitude', 'method', 'speaker', 'timezone', 'offset']
+    loadedValues.forEach(value => {
+      if (this.localStorage(value))
+        this[value] = localStorage(value)
+    })
+  },
   mounted() {
-    const $q = useQuasar()
-    this.getAllSettings()
-    this.getAthanOptions()
     this.getPrayerTimes()
-    this.getNetworkDevices()
+    // this.getNetworkDevices()
   },
   methods: {
-    changeView(newView) {
-      this.activeView = newView
-      this.drawer = false
+    // get device location
+    getGeoLocation() {
+      this.loadingLocation = true
+      navigator.geolocation.getCurrentPosition(this.geoLocationSuccess, this.geolocationError, {enableHighAccuracy: true});
     },
-    getAllSettings() {
-      api.get(SETTINGS_ALL_URL).then(resp => {
-        if (resp.data) {
-          this.athanOptions = resp.data.audio
-
-          if (resp.data.location) {
-            this.address = resp.data.location.address
-            this.latitude = resp.data.location.lat
-            this.longitude = resp.data.location.long
-          }
-          if (resp.data.calculation) {
-            this.jurisprudenceSetting = resp.data.calculation.jurisprudence
-            this.methodSetting = resp.data.calculation.method
-          }
-          this.speaker = resp.data.speaker
-          this.configureSettings(resp.data.athans)
-        }
-      }).catch(this.configureSettings)
+    geoLocationSuccess(position) {
+      this.setLocation(position.coords.latitude, position.coords.longitude)
     },
-    getAthanOptions() {
-      api.get(ATHANS_URL).then(resp => {
-        this.athanOptions = resp.data
-      })
+    geolocationError(error) {
+      this.sendNotification('negative', 'code: ' + error.code + '\n' +
+        'message: ' + error.message + '\n')
+      this.loadingLocation = false
     },
+    setLocation(lat, long) {
+      this.timezone = DateTime.local().zoneName
+      this.offset = DateTime.local().offset / 60
+      this.latitude = lat
+      this.longitude = long
+      this.getPrayerTimes()
+      this.loadingLocation = false
+    },
+    // Get network devices
     getNetworkDevices() {
-      this.speakers = []
-      api.get(SPEAKERS_URL).then(resp => {
-          this.speakers = resp.data.speakers
+      //  TODO get network devices using google api
+
+      // this.speakers = []
+      // api.get(SPEAKERS_URL).then(resp => {
+      //     this.speakers = resp.data.speakers
+      //   }
+      // ).catch(e=>{
+      //   console.log(e, "network device error")
+      // })
+    },
+
+    // Get Prayer Times
+    getPrayerTimes() {
+      if (this.method.value && this.jurisprudence.label && this.latitude && this.longitude && this.offset) {
+        let pt = new PrayTimes(this.method.value)
+        pt.asrFactor(this.jurisprudence.label);
+        this.prayerTimes = pt.getTimes(new Date(), [this.latitude, this.longitude], this.offset)
+      }
+    },
+
+    // Setters
+
+    setMethod(method) {
+      this.method = method
+      this.getPrayerTimes()
+    },
+    setJurisprudence(jurisprudence) {
+      this.jurisprudence = jurisprudence
+      this.getPrayerTimes()
+    },
+    setPrayerSettings(a, prayer, update) {
+      let allPrayerSettings = this.athanSettings
+      let prayerSettings = allPrayerSettings[prayer]
+      if (update === 'athan') {
+        prayerSettings.athan = {
+          label: this.athanOptions[a].desc,
+          value: this.athanOptions[a].audio_id,
+          type: this.athanOptions[a].type
         }
-      )
+      } else if (update === 'notification') {
+        prayerSettings.notification = {
+          label: this.athanOptions[a].desc,
+          value: this.athanOptions[a].audio_id,
+          type: this.athanOptions[a].type
+        }
+      } else {
+        prayerSettings[UPDATE_MAP[update]] = a
+      }
+      allPrayerSettings[prayer] = prayerSettings
+      this.athanSettings = allPrayerSettings
     },
     setSpeaker(speaker) {
       this.speaker = speaker
-      api.put(SPEAKER_SETTINGS_URL, speaker).catch(e => {
-      })
-    },
-    setLocation(address, lat, long) {
-      this.address = address
-      this.latitude = lat
-      this.longitude = long
-      const config = {
-        address: address,
-        lat: lat,
-        long: long
-      }
-      api.put(LOCATION_SETTINGS_URL, config).catch(e => {
-        if (e.response.status === 404) {
-          this.$q.notify({
-            timeout: 5000,
-            type: 'negative',
-            message: 'Error saving location from manual input: Please verify your latitude and longitude, and try again.'
-          })
-        }
-      })
-    },
-    setMethod(method) {
-      this.methodSetting = method
-      api.put(METHOD_SETTINGS_URL + method)
-    },
-    setJurisprudence(jurisprudence) {
-      this.jurisprudenceSetting = jurisprudence
-      api.put(JURISPRUDENCE_SETTINGS_URL + jurisprudence)
-    },
-    setPrayerSettings(a, prayer, update, isToggle) {
-      let url = ATHANS_URL + prayer + '/' + update
-      url += isToggle ? `?on=${a}` : '/' + a
-      api.put(url)
-    },
-    loadSettingsPerSalah(prayer, name, icon) {
-      const settings = {}
-      let data = prayer || {}
-
-      settings['name'] = name
-      settings['icon'] = icon
-      settings['volume'] = data.volume || 0
-      settings['athanToggle'] = !!data.athan_on
-      settings['notificationToggle'] = !!data.notification_on
-      settings['notificationTime'] = data.notification_time
-
-      if (data && data.audio_id) {
-        const athanInfo = this.athanOptions[data.audio_id]
-        settings['athan'] = {
-          label: athanInfo.name,
-          value: athanInfo.audio_id,
-          length: athanInfo.length,
-          type: athanInfo.type
-        }
-      }
-      if (data && data.notification_id) {
-        const notificationInfo = this.athanOptions[data.notification_id]
-        settings['notification'] = {
-          label: notificationInfo.name,
-          value: notificationInfo.audio_id,
-          length: notificationInfo.length,
-          type: notificationInfo.type
-        }
-      }
-      return settings
-    },
-    configureSettings(s) {
-      let fajr = s ? s.fajr : null
-      let dhuhr = s ? s.dhuhr : null
-      let asr = s ? s.asr : null
-      let maghrib = s ? s.maghrib : null
-      let isha = s ? s.isha : null
-
-
-      const allSettings = {}
-      allSettings['fajr'] = this.loadSettingsPerSalah(fajr, 'Fajr', 'mdi-weather-sunset-up')
-      allSettings['dhuhr'] = this.loadSettingsPerSalah(dhuhr, 'Dhuhr', 'mdi-weather-sunny')
-      allSettings['asr'] = this.loadSettingsPerSalah(asr, 'Asr', 'mdi-weather-partly-cloudy')
-      allSettings['maghrib'] = this.loadSettingsPerSalah(maghrib, 'Maghrib', 'mdi-weather-sunset-down')
-      allSettings['isha'] = this.loadSettingsPerSalah(isha, 'Isha', 'mdi-weather-night')
-      this.athanSettings = allSettings
     },
     updateBaseURL(baseURL) {
       this.baseURL = baseURL
       api.defaults.baseURL = baseURL
-      this.getAllSettings()
     },
     testSpeaker(audio_id, speaker) {
       const testSpeaker = speaker || this.speaker
@@ -292,17 +255,32 @@ export default defineComponent({
       }
       api.post(TEST_SOUND_URL, config)
     },
-    getPrayerTimes() {
-      api.get(PRAYER_TIMES_URL).then(resp => {
-        this.prayerTimes = resp.data
+    refresh(done) {
+      this.getPrayerTimes()
+      if (typeof done === 'function') done()
+      this.sendNotification('positive', 'Refreshed')
+    },
+    sendNotification(level, message) {
+      this.$q.notify({
+        timeout: 5000,
+        type: level,
+        message: message
       })
     },
-    refresh() {
-      this.getPrayerTimes()
-      this.getAllSettings()
-      this.getAthanOptions()
-      this.getNetworkDevices()
-
+    resetApp() {
+      this.latitude = null
+      this.longitude = null
+      this.timezone = null
+      this.offset = null
+      this.method = null
+      this.jurisprudence = 'Standard'
+      this.prayerTimes = {}
+      this.athanSettings = ATHAN_SETTINGS_DEFAULT
+      api.delete(RESET_SETTINGS_URL)
+    },
+    saveSettings() {
+      //  TODO add save settings endpoint to hit RPI
+      this.sendNotification('positive', 'Settings Saved!')
     }
   },
 })
