@@ -15,3 +15,4 @@ export const RESET_SETTINGS_URL = "/settings/reset"
 export const SPEAKER_SETTINGS_URL = "/settings/speaker"
 export const VOLUME_SETTINGS_URL = "/settings/volume"
 export const SETTINGS_ALL_URL = '/settings/all'
+export const VUE_APP_BASE_URL='http://raspberrypi.local:5002/'

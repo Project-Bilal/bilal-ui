@@ -12,10 +12,10 @@
           <div class="col-1">
             <q-icon size="sm"
                     color="white"
-                    :name="speaker ? (speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker') : 'volume_off'"/>
+                    name="speaker"/>
           </div>
-          <div v-if="speaker && speaker.name" class="col-9 text-uppercase">
-            {{ `${speaker.name} - ${speaker.model}` }}
+          <div v-if="speaker.name" class="col-9 text-uppercase">
+            {{ speaker.name }}
           </div>
           <div v-else class="col-9 text-uppercase">
             NONE SELECTED
@@ -47,19 +47,19 @@
       </div>
       <q-banner v-if="speakers.length === 0" class="bg-transparent text-amber">
         <template v-slot:avatar>
-          <q-spinner-radio color="primary" size="2em"/>
+          <q-icon name="search"/>
         </template>
-        Searching for devices...
+        Click the refresh button to scan for devices on your network
       </q-banner>
-      <q-list dark separator v-else class="q-my-xs">
+      <q-list dark separator class="q-my-xs">
         <q-item
           v-for="s in speakers"
           :key="s.name"
           active
-          :active-class="speaker && s.name === speaker.name ? 'text-orange' :'text-white'"
+          :active-class="s.name === speaker.name ? 'text-orange' :'text-white'"
         >
           <q-item-section>
-            <q-btn :icon="s.cast_type === 'Group' ? 'speaker_group' :  'speaker'" align="left" @click="setSpeaker(s)">
+            <q-btn :icon="s.isCastGroup ? 'speaker_group' :  'speaker'" align="left" @click="setSpeaker(s)">
               {{ s.name }}
             </q-btn>
           </q-item-section>
@@ -93,8 +93,7 @@ export default {
       this.$emit('set-speaker', speaker)
     },
     testSound(speaker) {
-      const chirp = '1jishJEjKVBqMqLhR4uPv8X8hjOKIIvgS'
-      this.$emit('test-speaker', chirp, speaker)
+      this.$emit('test-speaker', speaker)
     }
   }
 }

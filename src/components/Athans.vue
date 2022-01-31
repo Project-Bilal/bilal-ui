@@ -71,11 +71,11 @@
                 <q-slider
                   :model-value="k.volume"
                   switch-label-side
+                  label
                   dark
-                  snap
-                  :step="1"
+                  :step="10"
                   :min="0"
-                  :max="10"
+                  :max="100"
                   @change="(a)=>setPrayerSettings(a,k.name, 'volume')"
                 />
               </q-item>
@@ -87,19 +87,50 @@
                 @update:model-value="setPrayerSettings(!k.notificationToggle, k.name, 'toggle-notification')"
               >
                 <template #default>
-                  <q-item-label style="color: white" class="text-subtitle1">
+                  <q-item-label style="color: #ffffff" class="text-subtitle1">
                     Pre-Athan Notification
                   </q-item-label>
                 </template>
               </q-toggle>
               <q-slide-transition>
                 <div v-show="k.notificationToggle">
+                  <q-btn-group rounded flat class="q-mt-sm" push spread>
+                    <q-btn
+                      dense
+                      :class="k.notificationTime === 5 ? 'text-amber': 'text-white'"
+                      @click="setPrayerSettings(5, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      5 min
+                    </q-btn>
+                    <q-btn
+                      dense
+                      :class="k.notificationTime === 10 ? 'text-amber': 'text-white'"
+                      @click="setPrayerSettings(10, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      10 min
+                    </q-btn>
+                    <q-btn
+                      dense
+                      :class="k.notificationTime === 15 ? 'text-amber': 'text-white'"
+                      @click="setPrayerSettings(15, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      15 min
+                    </q-btn>
+                    <q-btn
+                      dense
+                      :class="k.notificationTime === 30 ? 'text-amber': 'text-white'"
+                      @click="setPrayerSettings(30, k.name.toLowerCase(), 'notification-time')"
+                    >
+                      30 Min
+                    </q-btn>
+                  </q-btn-group>
                   <q-select
                     :model-value="k.notification.label"
                     label="Select Notification"
                     :options="getAudioList"
                     behavior="dialog"
                     dark
+                    v-show="k.notificationTime"
                   >
                     <template v-slot:option="scope">
                       <q-expansion-item
@@ -142,42 +173,6 @@
                       </q-expansion-item>
                     </template>
                   </q-select>
-                  <q-btn-group dark rounded flat class="q-mt-sm" push spread>
-                    <q-btn
-                      flat
-                      color="white"
-                      :class="k.notificationTime === 5 ? 'text-teal-4': 'text-white'"
-                      @click="setPrayerSettings(5, k.name.toLowerCase(), 'notification-time')"
-                    >
-                      5 min
-
-                    </q-btn>
-                    <q-btn
-                      dark
-                      flat
-                      color="white"
-                      :class="k.notificationTime === 10 ? 'text-teal-4': 'text-white'"
-                      @click="setPrayerSettings(10, k.name.toLowerCase(), 'notification-time')"
-                    >
-                      10 min
-                    </q-btn>
-                    <q-btn
-                      flat
-                      color="white"
-                      :class="k.notificationTime === 15 ? 'text-teal-4': 'text-white'"
-                      @click="setPrayerSettings(15, k.name.toLowerCase(), 'notification-time')"
-                    >
-                      15 min
-                    </q-btn>
-                    <q-btn
-                      flat
-                      color="white"
-                      :class="k.notificationTime === 30 ? 'text-teal-4': 'text-white'"
-                      @click="setPrayerSettings(30, k.name.toLowerCase(), 'notification-time')"
-                    >
-                      30 Min
-                    </q-btn>
-                  </q-btn-group>
                 </div>
               </q-slide-transition>
             </div>

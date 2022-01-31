@@ -80,7 +80,7 @@ import About from "components/About";
 import Dashboard from "components/Dashboard";
 import Settings from "components/Settings";
 import {Athans, ATHAN_SETTINGS_DEFAULT} from "src/utils/athans";
-import {RESET_SETTINGS_URL, SPEAKERS_URL, TEST_SOUND_URL} from "src/utils/constants";
+import {RESET_SETTINGS_URL, SETTINGS_ALL_URL} from "src/utils/constants";
 
 
 const UPDATE_MAP = {
@@ -108,15 +108,16 @@ export default defineComponent({
       loadingLocation: false,
       prayerTimes: {},
       speakers: [],
+
       // Values brought in by local storage on app launch
       athanSettings: ATHAN_SETTINGS_DEFAULT,
       jurisprudence: {
         label: null,
         value: null
       },
-      latitude: 0,
-      longitude: 0,
-      offset: 0,
+      latitude: null,
+      longitude: null,
+      offset: null,
       method: {
         label: null,
         value: null
@@ -163,7 +164,7 @@ export default defineComponent({
   },
   mounted() {
     this.getPrayerTimes()
-    // this.getNetworkDevices()
+    this.getGeoLocation()
   },
   methods: {
     // get device location
@@ -180,8 +181,8 @@ export default defineComponent({
       this.loadingLocation = false
     },
     setLocation(lat, long) {
-      this.timezone = DateTime.local().zoneName
-      this.offset = DateTime.local().offset / 60
+      this.timezone = DateTime.local().zoneName // Americas/Los_Angeles
+      this.offset = DateTime.local().offset / 60 // -8.0
       this.latitude = lat
       this.longitude = long
       this.getPrayerTimes()
@@ -189,17 +190,63 @@ export default defineComponent({
     },
     // Get network devices
     getNetworkDevices() {
-      //  TODO get network devices using google api
-
-      // this.speakers = []
-      // api.get(SPEAKERS_URL).then(resp => {
-      //     this.speakers = resp.data.speakers
-      //   }
-      // ).catch(e=>{
-      //   console.log(e, "network device error")
-      // })
+      const scanRoutes = this.scanRoutes
+      const appId = chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+      const apiConfig = new chrome.cast.ApiConfig(
+        new chrome.cast.SessionRequest(appId, chrome.cast.Capability.AUDIO_OUT),
+        function sessionListener(session) {
+        },
+        function receiverListener(availability) {
+        });
+      chrome.cast.initialize(apiConfig, function () {
+        scanRoutes()
+      }, function (err) {
+      })
     },
-
+    scanRoutes() {
+      const setDevices = this.setDeviceSpeakers
+      chrome.cast.cordova.startRouteScan(
+        function (routes) {
+          setDevices(routes)
+          chrome.cast.cordova.stopRouteScan(
+            function () {
+            },
+            function (error) {
+            })
+        }, function (err) {
+          chrome.cast.cordova.stopRouteScan(
+            function () {
+            },
+            function (error) {
+            })
+        })
+    },
+    setDeviceSpeakers(devices) {
+      this.speakers = devices
+    },
+    testSpeaker(speaker) {
+      const audioId = 'https://storage.googleapis.com/athans/tweet.mp3'
+      const mediaInfo = new chrome.cast.media.MediaInfo(audioId, 'audio/mp3')
+      console.log('testing speaker')
+      chrome.cast.cordova.selectRoute(speaker.id,
+        function successCallback(session) {
+          console.log("in select route callback success", session)
+          session.loadMedia(new chrome.cast.media.LoadRequest(mediaInfo), function (media) {
+            console.log("In load media", media)
+            setTimeout(function () {
+              session.stop()
+            }, 2000);
+          }, function (err) {
+            console.log(err)
+            setTimeout(function () {
+              session.stop()
+            }, 2000);
+          })
+        }, function errorCallback(err) {
+          console.log("in request route error callback", err)
+        }
+      )
+    },
     // Get Prayer Times
     getPrayerTimes() {
       if (this.method.value && this.jurisprudence.label && this.latitude && this.longitude && this.offset) {
@@ -210,7 +257,6 @@ export default defineComponent({
     },
 
     // Setters
-
     setMethod(method) {
       this.method = method
       this.getPrayerTimes()
@@ -247,14 +293,6 @@ export default defineComponent({
       this.baseURL = baseURL
       api.defaults.baseURL = baseURL
     },
-    testSpeaker(audio_id, speaker) {
-      const testSpeaker = speaker || this.speaker
-      const config = {
-        audio_id: audio_id,
-        speaker: testSpeaker
-      }
-      api.post(TEST_SOUND_URL, config)
-    },
     refresh(done) {
       this.getPrayerTimes()
       if (typeof done === 'function') done()
@@ -264,7 +302,13 @@ export default defineComponent({
       this.$q.notify({
         timeout: 5000,
         type: level,
-        message: message
+        message: message,
+        actions: [
+          {
+            label: 'Dismiss', color: 'white', handler: () => {
+            }
+          }
+        ]
       })
     },
     resetApp() {
@@ -279,8 +323,65 @@ export default defineComponent({
       api.delete(RESET_SETTINGS_URL)
     },
     saveSettings() {
-      //  TODO add save settings endpoint to hit RPI
-      this.sendNotification('positive', 'Settings Saved!')
+      let save = true
+      if (!this.method || !this.method.value) {
+        save = false
+        this.sendNotification('negative', "Method is missing")
+      }
+      if (!this.jurisprudence || !this.jurisprudence.label) {
+        save = false
+        this.sendNotification('negative', "Jurisprudence is missing")
+      }
+      if (!this.timezone) {
+        save = false
+        this.sendNotification('negative', "Location is missing")
+      }
+      const athans = this.athanSettings
+      const prayerList = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
+      let atLeastOneAthanIsOn = false
+      prayerList.forEach(a => {
+          if (athans[a].athanToggle || athans[a].notificationToggle) {
+            atLeastOneAthanIsOn = true
+          }
+          if (athans[a].athanToggle && !athans[a].athan.value) {
+            save = false
+            this.sendNotification('negative', `${a} athan is on, but missing athan selection`)
+          }
+          if (athans[a].notificationToggle && !athans[a].notification.value) {
+            save = false
+            this.sendNotification('negative', `${a} notification is on, but missing notification selection`)
+          }
+          if (athans[a].notificationToggle && !athans[a].notificationTime) {
+            save = false
+            this.sendNotification('negative', `${a} notification is on, but missing notification time`)
+          }
+        }
+      )
+      if (!atLeastOneAthanIsOn) {
+        save = false
+        this.sendNotification('negative', 'Please have at least one athan setting on')
+      }
+      if (save) {
+        const config = {
+          user_settings: {
+            lat: this.latitude,
+            long: this.longitude,
+            method: this.method.value,
+            jurisprudence: this.jurisprudence.label,
+            tz: this.timezone,
+            athans: this.athanSettings,
+            speaker: this.speaker.name
+          }
+        }
+        api.post(SETTINGS_ALL_URL, config).then(resp => {
+            this.sendNotification('positive', 'Settings Saved!')
+          }
+        ).catch(resp => {
+          this.sendNotification('negative', "Could not save settings. Please be sure you are on the same network as the RPI.")
+        })
+      }
+
+
     }
   },
 })

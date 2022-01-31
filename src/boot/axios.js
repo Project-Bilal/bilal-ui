@@ -1,5 +1,6 @@
 import {boot} from 'quasar/wrappers'
 import axios from 'axios'
+import {VUE_APP_BASE_URL} from '../utils/constants'
 
 
 // Be careful when using SSR for cross-request state pollution
@@ -9,8 +10,8 @@ import axios from 'axios'
 // "export default () => {}" function below (which runs individually
 // for each client)
 const api = axios.create({
-  baseURL: process.env.VUE_APP_BASE_URL,
-  headers:{
+  baseURL: VUE_APP_BASE_URL,
+  headers: {
     'Content-Type': 'application/json',
     'accept': 'application/json'
   }

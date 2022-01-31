@@ -14,7 +14,10 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-ios": "^6.2.0",
+    "cordova-plugin-chromecast": "github:miloproductionsinc/cordova-plugin-chromecast",
     "cordova-plugin-geolocation": "^4.1.0",
+    "cordova-plugin-ionic-webview": "^5.0.0",
+    "cordova-plugin-splashscreen": "^6.0.0",
     "cordova-plugin-statusbar": "^3.0.0"
   },
   "cordova": {
@@ -25,7 +28,10 @@
       "cordova-plugin-statusbar": {},
       "cordova-plugin-geolocation": {
         "GPS_REQUIRED": "true"
-      }
+      },
+      "cordova-plugin-chromecast": {},
+      "cordova-plugin-ionic-webview": {},
+      "cordova-plugin-splashscreen": {}
     }
   }
 }

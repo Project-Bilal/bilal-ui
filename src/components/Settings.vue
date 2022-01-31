@@ -40,8 +40,19 @@
           <q-space class="q-pb-lg"/>
         </q-card-section>
       </q-card>
-      <q-page-sticky position="bottom" :offset="[0, 23]">
-        <q-btn  fab icon="save" color="primary" class="full-width" @click="saveSettings">Save Settings</q-btn>
+      <q-page-sticky position="bottom" :offset="[0, 24]">
+        <q-btn fab
+               :disable="!speaker.name ||
+               !latitude ||
+               !longitude ||
+               !method.value ||
+               !jurisprudence.label"
+               icon="save"
+               color="primary"
+               class="full-width"
+               @click="saveSettings">
+          Save Settings
+        </q-btn>
       </q-page-sticky>
     </div>
   </q-page>
@@ -83,7 +94,7 @@ export default {
     'longitude': {
       type: [Number, String],
     },
-    'loadingSpeakers':{
+    'loadingSpeakers': {
       type: Boolean
     },
     'loadingLocation': {
@@ -121,10 +132,10 @@ export default {
     setPrayerSettings(a, prayer, update) {
       this.$emit('set-prayer-settings', a, prayer, update)
     },
-    testSpeaker(audio_id, speaker) {
-      this.$emit('test-speaker', audio_id, speaker)
+    testSpeaker(speaker) {
+      this.$emit('test-speaker', speaker)
     },
-    saveSettings(){
+    saveSettings() {
       this.$emit('save-settings')
     }
   }

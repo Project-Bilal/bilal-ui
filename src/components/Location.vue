@@ -4,14 +4,10 @@
       <div class="text-h6 q-pb-sm">
         Location
       </div>
-
       <q-input label-color="white" bg-color="teal-6" dark outlined dense v-if="latitude" disable
                :placeholder="'Latitude '+latitude"/>
       <q-input bg-color="teal-6" outlined dense disable dark v-if="longitude" :placeholder="'Longitude '+longitude"/>
 
-      <q-btn class="full-width" :loading="loadingLocation" color="primary" @click="getGeoLocation">
-        Detect Device Location
-      </q-btn>
       <q-toggle v-model="toggleManual">
         Set Location Manually
         <q-icon name="info" size="sm">

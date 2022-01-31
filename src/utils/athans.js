@@ -69,9 +69,9 @@ export const ATHAN_SETTINGS_DEFAULT = {
     athanToggle: false,
     icon: "mdi-weather-sunset-up",
     name: "Fajr",
-    notificationTime: 5,
+    notificationTime: null,
     notificationToggle: false,
-    volume: 2,
+    volume: 40,
     athan: {
       label: null,
       value: null,
@@ -87,9 +87,9 @@ export const ATHAN_SETTINGS_DEFAULT = {
     athanToggle: false,
     icon: "mdi-weather-sunny",
     name: "Dhuhr",
-    notificationTime: undefined,
+    notificationTime: null,
     notificationToggle: false,
-    volume: 2,
+    volume: 40,
     athan: {
       label: null,
       value: null,
@@ -105,9 +105,9 @@ export const ATHAN_SETTINGS_DEFAULT = {
     athanToggle: false,
     icon: "mdi-weather-partly-cloudy",
     name: "Asr",
-    notificationTime: undefined,
+    notificationTime: null,
     notificationToggle: false,
-    volume: 2,
+    volume: 40,
     athan: {
       label: null,
       value: null,
@@ -123,9 +123,9 @@ export const ATHAN_SETTINGS_DEFAULT = {
     athanToggle: false,
     icon: "mdi-weather-sunset-down",
     name: "Maghrib",
-    notificationTime: undefined,
+    notificationTime: null,
     notificationToggle: false,
-    volume: 2,
+    volume: 40,
     athan: {
       label: null,
       value: null,
@@ -141,9 +141,9 @@ export const ATHAN_SETTINGS_DEFAULT = {
     athanToggle: false,
     icon: "mdi-weather-night",
     name: "Isha",
-    notificationTime: undefined,
+    notificationTime: null,
     notificationToggle: false,
-    volume: 2,
+    volume: 40,
     athan: {
       label: null,
       value: null,
@@ -154,6 +154,5 @@ export const ATHAN_SETTINGS_DEFAULT = {
       value: null,
       type: null
     }
-
   }
 }

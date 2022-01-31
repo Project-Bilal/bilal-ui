@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.projectbilal" version="0.0.7" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.projectbilal" version="0.0.9" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Project Bilal</name>
     <description>An Athan Manager</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
@@ -9,7 +9,27 @@
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <allow-navigation href="about:*" />
+    <splash src="pb_logo.jpg" />
     <platform name="ios">
+        <config-file comment="cordova-plugin-chromecast" parent="NSBluetoothPeripheralUsageDescription" target="*-Info.plist">
+            <string>Bluetooth is required to scan for nearby Chromecast devices with guest mode enabled.</string>
+        </config-file>
+        <config-file comment="cordova-plugin-chromecast" parent="NSBluetoothAlwaysUsageDescription" target="*-Info.plist">
+            <string>Bluetooth is required to scan for nearby Chromecast devices with guest mode enabled.</string>
+        </config-file>
+        <config-file comment="cordova-plugin-chromecast" parent="NSMicrophoneUsageDescription" target="*-Info.plist">
+            <string>The microphone is required to pair with nearby Chromecast devices with guest mode enabled.</string>
+        </config-file>
+        <config-file comment="cordova-plugin-chromecast" parent="NSLocalNetworkUsageDescription" target="*-Info.plist">
+            <string>The local network permission is required to discover Cast-enabled devices on your WiFi network.</string>
+        </config-file>
+        <config-file comment="cordova-plugin-chromecast" parent="NSBonjourServices" target="*-Info.plist">
+            <array>
+                <string>_googlecast._tcp</string>
+                <string>_CC1AD845._googlecast._tcp</string>
+            </array>
+        </config-file>
+        <preference name="deployment-target" value="11.0" />
         <preference name="ScrollEnabled" value="true" />
         <preference name="AllowInlineMediaPlayback" value="true" />
         <preference name="DisallowOverscroll" value="true" />

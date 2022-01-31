@@ -90,10 +90,10 @@
               <div class="col-1">
                 <q-icon
                   size="sm"
-                  :name="speaker ? speaker.cast_type === 'Group' ? 'speaker_group' :  'speaker': 'volume_off'"/>
+                  name="speaker"/>
               </div>
               <div v-if="speaker" class="col-9">
-                {{ `${speaker.name} - ${speaker.model}` }}
+                {{ speaker.name }}
               </div>
               <div v-else>
                 NONE SELECTED
